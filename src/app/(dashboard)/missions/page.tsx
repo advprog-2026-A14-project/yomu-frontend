@@ -1,1 +1,9 @@
-/* 🛣️ ROUTING LAYER (App Router) - Gamification feature: Missions page */
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page

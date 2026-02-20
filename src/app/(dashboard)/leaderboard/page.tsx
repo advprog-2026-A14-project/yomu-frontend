@@ -1,1 +1,9 @@
-/* 🛣️ ROUTING LAYER (App Router) - League feature: Leaderboard page */
+import React from 'react'
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
+}
+
+export default page
