@@ -1,0 +1,1 @@
+/* 📝 TYPESCRIPT - User type definitions */

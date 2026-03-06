@@ -1,0 +1,1 @@
+/* 📝 TYPESCRIPT - Clan type definitions */
