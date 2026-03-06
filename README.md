@@ -71,7 +71,6 @@ npx shadcn@latest add [component-name]
 - [Tailwind CSS](https://tailwindcss.com)
 
 # FE Auth Simple
-
 ## Flow
 - Login local: browser memanggil `POST /api/v1/auth/login` (BFF Next), BFF proxy ke Core, lalu set cookie httpOnly jika sukses.
 - Register local: browser memanggil `POST /api/v1/auth/register`, BFF proxy ke Core, lalu set cookie httpOnly jika sukses.
