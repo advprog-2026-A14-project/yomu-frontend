@@ -26,7 +26,7 @@ jobs:
       - name: Ensure lightningcss native binary (Linux)
         if: runner.os == 'Linux'
         run: |
-          LIGHTNINGCSS_VERSION=$(node -p "require('lightningcss/package.json').version")
+          LIGHTNINGCSS_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/lightningcss'].version")
           npm install --no-save lightningcss-linux-x64-gnu@${LIGHTNINGCSS_VERSION}
 
       - name: Run lint
