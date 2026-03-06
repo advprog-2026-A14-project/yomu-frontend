@@ -63,7 +63,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```bash
 npx shadcn@latest add [component-name]
 ```
-
 ## Learn More
 
 - [Next.js Docs](https://nextjs.org/docs)
