@@ -1,8 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 
+type LegacyQuizItem = {
+  kuisId: string;
+  kuisTitle: string;
+};
+
 export default function ConnectivityTest() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<LegacyQuizItem[]>([]);
   const [status, setStatus] = useState('Connecting...');
 
   useEffect(() => {
@@ -30,7 +35,7 @@ export default function ConnectivityTest() {
         <h2 className="text-lg font-medium">Data from Database:</h2>
         {data.length > 0 ? (
           <ul className="mt-2 list-disc pl-5">
-            {data.map((item: any) => (
+            {data.map((item) => (
               <li key={item.kuisId} className="mt-1">
                 {item.kuisTitle} <span className="text-gray-400 text-sm">({item.kuisId})</span>
               </li>
