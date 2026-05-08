@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+      - staging
     tags:
       - 'v*.*.*'
   pull_request:
     branches:
       - main
+      - staging
   workflow_dispatch:
 
 env:
@@ -71,7 +73,6 @@ jobs:
     name: Lint & Build (CI)
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
