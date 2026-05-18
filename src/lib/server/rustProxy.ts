@@ -2,19 +2,19 @@ import "server-only";
 
 import type { ApiResponse } from "@/src/lib/api/types";
 
-type CoreFetchSuccess<T> = {
+type RustFetchSuccess<T> = {
   ok: true;
   status: number;
   body: ApiResponse<T>;
 };
 
-type CoreFetchFailure = {
+type RustFetchFailure = {
   ok: false;
   status: number;
   body: ApiResponse<never>;
 };
 
-export type CoreFetchResult<T> = CoreFetchSuccess<T> | CoreFetchFailure;
+export type RustFetchResult<T> = RustFetchSuccess<T> | RustFetchFailure;
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
@@ -43,15 +43,7 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
     message?: unknown;
   };
 
-  if (typeof candidate.success !== "boolean") {
-    return false;
-  }
-
-  if (typeof candidate.message !== "string") {
-    return false;
-  }
-
-  return true;
+  return typeof candidate.success === "boolean" && typeof candidate.message === "string";
 }
 
 function describeInvalidPayload(status: number, payload: unknown) {
@@ -66,17 +58,8 @@ function describeInvalidPayload(status: number, payload: unknown) {
   }
 }
 
-export async function coreFetch<T>(path: string, init: RequestInit = {}): Promise<CoreFetchResult<T>> {
-  const baseUrl = process.env.CORE_API_BASE_URL;
-
-  if (!baseUrl) {
-    return {
-      ok: false,
-      status: 500,
-      body: { success: false, message: "CORE_API_BASE_URL belum diatur" },
-    };
-  }
-
+export async function rustFetch<T>(path: string, init: RequestInit = {}): Promise<RustFetchResult<T>> {
+  const baseUrl = process.env.RUST_ENGINE_BASE_URL?.trim() || "http://localhost:8080";
   const headers = new Headers(init.headers);
 
   if (typeof init.body === "string" && isJsonString(init.body) && !headers.has("Content-Type")) {
@@ -98,7 +81,7 @@ export async function coreFetch<T>(path: string, init: RequestInit = {}): Promis
       status: 502,
       body: {
         success: false,
-        message: error instanceof Error ? `Core API tidak dapat dihubungi: ${error.message}` : "Core API tidak dapat dihubungi",
+        message: error instanceof Error ? `Rust Engine tidak dapat dihubungi: ${error.message}` : "Rust Engine tidak dapat dihubungi",
       },
     };
   }

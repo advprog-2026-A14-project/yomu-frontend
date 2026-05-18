@@ -5,7 +5,9 @@ import { ArrowLeft, BookOpenText, ChartNoAxesColumn, CircleCheckBig } from "luci
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import type { Article } from "@/src/lib/api/articles";
 import { getMockArticle } from "@/src/lib/mock/bacaankuis";
+import { coreFetch } from "@/src/lib/server/coreProxy";
 
 type Props = {
   params: Promise<{
@@ -21,7 +23,20 @@ type Props = {
 export default async function ArticleQuizResultPage({ params, searchParams }: Props) {
   const { articleId } = await params;
   const query = await searchParams;
-  const article = getMockArticle(articleId);
+  const articleResult = await coreFetch<Article>(`/api/v1/articles/${encodeURIComponent(articleId)}`, {
+    method: "GET",
+  });
+  const coreArticle =
+    articleResult.body.success && "data" in articleResult.body && articleResult.body.data
+      ? articleResult.body.data
+      : null;
+  const article = coreArticle
+    ? {
+        id: coreArticle.id,
+        title: coreArticle.title,
+        accent: "from-emerald-200 via-lime-100 to-amber-50",
+      }
+    : getMockArticle(articleId);
 
   if (!article) {
     notFound();
@@ -39,14 +54,14 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-3">
                 <Badge variant="outline" className="border-zinc-900/10 bg-white/65 text-zinc-800">
-                  Hasil Mockup
+                  Hasil Kuis
                 </Badge>
                 <h1 className="text-3xl leading-tight font-semibold md:text-4xl">
                   Kamu sudah menuntaskan {article.title}
                 </h1>
                 <p className="max-w-2xl text-sm leading-7 text-zinc-700 md:text-base">
-                  Tampilan ini meniru state setelah `POST /api/v1/quizzes/{articleId}/submit`: frontend
-                  merangkum score, accuracy, dan status attempt akhir.
+                  Score dan akurasi sudah dikirim ke Java Core. Jika sync Engine aktif, score diteruskan
+                  ke Rust untuk riwayat kuis dan leaderboard.
                 </p>
               </div>
 
@@ -92,8 +107,8 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                     <p className="font-medium text-emerald-950">Interpretasi singkat</p>
                   </div>
                   <p className="text-sm leading-6 text-emerald-950/80">
-                    Hasil ini cocok dijadikan halaman penutup yang ringan. Kalau nanti backend menambah riwayat
-                    attempt, kartu ini bisa berkembang menjadi ringkasan progres belajar.
+                    Kamu sudah menyelesaikan attempt artikel ini. Backend Java menjaga agar submit artikel
+                    tetap satu kali per user.
                   </p>
                 </CardContent>
               </Card>

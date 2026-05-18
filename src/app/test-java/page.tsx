@@ -1,51 +1,58 @@
-'use client';
-import { useEffect, useState } from 'react';
+"use client";
 
-type LegacyQuizItem = {
-  kuisId: string;
-  kuisTitle: string;
+import { useEffect, useState } from "react";
+
+type Article = {
+  id: string;
+  title: string;
+  category?: string | null;
 };
 
 export default function ConnectivityTest() {
-  const [data, setData] = useState<LegacyQuizItem[]>([]);
-  const [status, setStatus] = useState('Connecting...');
+  const [data, setData] = useState<Article[]>([]);
+  const [status, setStatus] = useState("Connecting...");
 
   useEffect(() => {
-    // This calls your Spring Boot Backend
-    fetch('http://localhost:8080/api/bacaankuis')
+    fetch("/api/v1/articles")
       .then((res) => {
-        if (!res.ok) throw new Error('Backend Unreachable');
+        if (!res.ok) {
+          throw new Error("BFF or Java Core unreachable");
+        }
+
         return res.json();
       })
-      .then((data) => {
-        setData(data);
-        setStatus('Success! Connected to Java & PostgreSQL.');
+      .then((payload) => {
+        if (!payload.success) {
+          throw new Error(payload.message ?? "API response failed");
+        }
+
+        setData(payload.data ?? []);
+        setStatus("Success. Connected through Next BFF to Java Core.");
       })
-      .catch((err) => setStatus(`Error: ${err.message}`));
+      .catch((err: Error) => setStatus(`Error: ${err.message}`));
   }, []);
 
   return (
-    <div className="p-10 font-sans">
+    <main className="min-h-screen bg-zinc-50 p-10 font-sans">
       <h1 className="text-2xl font-bold">Integration Test Page</h1>
-      <p className={`mt-2 font-semibold ${status.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+      <p className={`mt-2 font-semibold ${status.includes("Error") ? "text-red-600" : "text-green-600"}`}>
         Status: {status}
       </p>
-      
+
       <div className="mt-6 border-t pt-4">
-        <h2 className="text-lg font-medium">Data from Database:</h2>
+        <h2 className="text-lg font-medium">Articles from Core API</h2>
         {data.length > 0 ? (
           <ul className="mt-2 list-disc pl-5">
             {data.map((item) => (
-              <li key={item.kuisId} className="mt-1">
-                {item.kuisTitle} <span className="text-gray-400 text-sm">({item.kuisId})</span>
+              <li key={item.id} className="mt-1">
+                {item.title} <span className="text-sm text-gray-400">({item.id})</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-gray-500 italic">No data found. Add rows in psql to see them here.</p>
+          <p className="mt-2 text-gray-500 italic">No data found.</p>
         )}
       </div>
-      <footer className="mt-10 text-xs text-gray-400">mantap</footer>
-    </div>
+    </main>
   );
 }

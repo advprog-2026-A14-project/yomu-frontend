@@ -10,6 +10,7 @@ import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group";
+import { submitQuiz as submitQuizAttempt } from "@/src/lib/api/articles";
 import type { MockArticle } from "@/src/lib/mock/bacaankuis";
 import { cn } from "@/src/lib/utils";
 
@@ -21,12 +22,15 @@ export function ReadingQuizExperience({ article }: Props) {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const hasQuestions = article.questions.length > 0;
   const currentQuestion = article.questions[currentQuestionIndex];
   const answeredCount = Object.keys(answers).length;
-  const completionValue = Math.round((answeredCount / article.questions.length) * 100);
-  const selectedAnswer = answers[currentQuestion.id] ?? "";
-  const hasFinishedAll = answeredCount === article.questions.length;
+  const completionValue = hasQuestions ? Math.round((answeredCount / article.questions.length) * 100) : 0;
+  const selectedAnswer = currentQuestion ? (answers[currentQuestion.id] ?? "") : "";
+  const hasFinishedAll = hasQuestions && answeredCount === article.questions.length;
 
   const answeredQuestionNumbers = useMemo(
     () =>
@@ -40,12 +44,28 @@ export function ReadingQuizExperience({ article }: Props) {
     [answers, article.questions],
   );
 
-  const submitQuiz = () => {
-    const correctCount = article.questions.filter(
-      (question) => answers[question.id] === question.answer,
-    ).length;
+  const submitQuiz = async () => {
+    if (!hasQuestions) {
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const hasAnswerKey = article.questions.every((question) => typeof question.answer === "string");
+    const correctCount = hasAnswerKey
+      ? article.questions.filter((question) => answers[question.id] === question.answer).length
+      : answeredCount;
     const score = Math.round((correctCount / article.questions.length) * 100);
     const accuracy = Number(((correctCount / article.questions.length) * 100).toFixed(1));
+
+    const response = await submitQuizAttempt(article.id, score, accuracy);
+    setSubmitting(false);
+
+    if (!response.success) {
+      setSubmitError(response.message);
+      return;
+    }
 
     router.push(
       `/bacaankuis/${article.id}/hasil?score=${score}&accuracy=${accuracy}&answered=${answeredCount}`,
@@ -65,6 +85,10 @@ export function ReadingQuizExperience({ article }: Props) {
                 </Link>
                 <span className="hidden md:inline">/</span>
                 <span>{article.category}</span>
+                <span className="hidden md:inline">/</span>
+                <Link href={`/forums/${article.id}`} className="hover:text-zinc-900">
+                  Diskusi
+                </Link>
               </div>
 
               <div className="space-y-3">
@@ -197,40 +221,48 @@ export function ReadingQuizExperience({ article }: Props) {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">
-                      Soal {currentQuestionIndex + 1} dari {article.questions.length}
-                    </p>
-                    <h2 className="text-xl leading-8 font-semibold text-zinc-950">
-                      {currentQuestion.question}
-                    </h2>
-                  </div>
+                  {currentQuestion ? (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">
+                          Soal {currentQuestionIndex + 1} dari {article.questions.length}
+                        </p>
+                        <h2 className="text-xl leading-8 font-semibold text-zinc-950">
+                          {currentQuestion.question}
+                        </h2>
+                      </div>
 
-                  <RadioGroup
-                    value={selectedAnswer}
-                    onValueChange={(value) =>
-                      setAnswers((current) => ({
-                        ...current,
-                        [currentQuestion.id]: value,
-                      }))
-                    }
-                    className="space-y-3"
-                  >
-                    {currentQuestion.options.map((option) => (
-                      <label
-                        key={option}
-                        className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
-                          selectedAnswer === option
-                            ? "border-zinc-950 bg-zinc-950 text-white"
-                            : "border-zinc-200 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300",
-                        )}
+                      <RadioGroup
+                        value={selectedAnswer}
+                        onValueChange={(value) =>
+                          setAnswers((current) => ({
+                            ...current,
+                            [currentQuestion.id]: value,
+                          }))
+                        }
+                        className="space-y-3"
                       >
-                        <RadioGroupItem value={option} className="mt-1 border-current text-current" />
-                        <span className="text-sm leading-6">{option}</span>
-                      </label>
-                    ))}
-                  </RadioGroup>
+                        {currentQuestion.options.map((option) => (
+                          <label
+                            key={option}
+                            className={cn(
+                              "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
+                              selectedAnswer === option
+                                ? "border-zinc-950 bg-zinc-950 text-white"
+                                : "border-zinc-200 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300",
+                            )}
+                          >
+                            <RadioGroupItem value={option} className="mt-1 border-current text-current" />
+                            <span className="text-sm leading-6">{option}</span>
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    </>
+                  ) : (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                      Kuis untuk artikel ini belum tersedia dari Core API.
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-3 rounded-3xl bg-zinc-50 p-4">
@@ -271,14 +303,16 @@ export function ReadingQuizExperience({ article }: Props) {
                     <Button
                       type="button"
                       className="flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
-                      disabled={!hasFinishedAll}
+                      disabled={!hasFinishedAll || submitting}
                       onClick={submitQuiz}
                     >
-                      Submit mockup
+                    {submitting ? "Mengirim..." : "Submit"}
                       <Send className="size-4" />
                     </Button>
                   )}
                 </div>
+
+                {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
               </CardContent>
             </Card>
 

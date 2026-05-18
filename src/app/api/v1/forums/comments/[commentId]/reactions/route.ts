@@ -4,6 +4,22 @@ import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ commentId: string }> }
+) {
+  const { commentId } = await params;
+
+  const result = await coreFetch(
+    `/api/v1/forums/comments/${commentId}/reactions`,
+    {
+      method: "GET",
+    }
+  );
+
+  return NextResponse.json(result.body, { status: result.status });
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ commentId: string }> }

@@ -2,7 +2,7 @@ export type MockQuizQuestion = {
   id: string;
   question: string;
   options: string[];
-  answer: string;
+  answer?: string;
 };
 
 export type MockArticle = {
