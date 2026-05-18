@@ -2,8 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { LogOut, RotateCcw, ShieldCheck } from "lucide-react";
 
 import { logout, me, type User } from "@/src/lib/api/auth";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent } from "@/src/components/ui/card";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -68,16 +72,56 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-2xl font-semibold">Hello Admin, {user.display_name}</h1>
-      <button
-        type="button"
-        className="mt-4 rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        onClick={onLogout}
-        disabled={loggingOut}
-      >
-        {loggingOut ? "Logout..." : "Logout"}
-      </button>
+    <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 sm:px-5 md:px-8">
+      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-5 md:flex-row md:items-center md:justify-between md:p-6">
+          <div className="min-w-0">
+            <p className="text-sm text-zinc-500">Masuk sebagai Admin</p>
+            <h1 className="mt-1 text-2xl font-semibold leading-tight">Halo, {user.display_name}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
+              Halaman admin sekarang menjadi pintu masuk fitur operasional, bukan hanya greeting.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-auto min-h-9 whitespace-normal px-4 py-2 text-center"
+            onClick={onLogout}
+            disabled={loggingOut}
+          >
+            <LogOut className="size-4" />
+            {loggingOut ? "Logout..." : "Logout"}
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="min-w-0 border-zinc-200 bg-white">
+            <CardContent className="space-y-3 p-5">
+              <ShieldCheck className="size-5 text-zinc-700" />
+              <h2 className="font-semibold">Session Admin</h2>
+              <p className="text-sm leading-6 text-zinc-600">
+                Role divalidasi dari `GET /api/v1/users/me`; user non-admin akan diarahkan ke `/app`.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="min-w-0 border-zinc-200 bg-white">
+            <CardContent className="space-y-3 p-5">
+              <RotateCcw className="size-5 text-zinc-700" />
+              <h2 className="font-semibold">Outbox Sync</h2>
+              <p className="text-sm leading-6 text-zinc-600">
+                Backend Java sudah punya endpoint retry failed sync. Frontend BFF/admin UI detail bisa
+                ditambahkan di atas pola auth yang sama.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Button asChild className="w-fit">
+          <Link href="/app">Lihat Hub Pelajar</Link>
+        </Button>
+      </section>
     </main>
   );
 }

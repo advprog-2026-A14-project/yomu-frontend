@@ -10,23 +10,28 @@ import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group";
-import type { MockArticle } from "@/src/lib/mock/bacaankuis";
+import { submitQuiz, type ReadingArticle } from "@/src/lib/api/reading";
 import { cn } from "@/src/lib/utils";
 
 type Props = {
-  article: MockArticle;
+  article: ReadingArticle;
+  notice?: string;
 };
 
-export function ReadingQuizExperience({ article }: Props) {
+export function ReadingQuizExperience({ article, notice }: Props) {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const currentQuestion = article.questions[currentQuestionIndex];
   const answeredCount = Object.keys(answers).length;
-  const completionValue = Math.round((answeredCount / article.questions.length) * 100);
-  const selectedAnswer = answers[currentQuestion.id] ?? "";
+  const completionValue =
+    article.questions.length > 0 ? Math.round((answeredCount / article.questions.length) * 100) : 0;
+  const selectedAnswer = currentQuestion ? (answers[currentQuestion.id] ?? "") : "";
   const hasFinishedAll = answeredCount === article.questions.length;
+  const canScore = article.questions.length > 0 && article.questions.every((question) => question.answer);
 
   const answeredQuestionNumbers = useMemo(
     () =>
@@ -40,24 +45,59 @@ export function ReadingQuizExperience({ article }: Props) {
     [answers, article.questions],
   );
 
-  const submitQuiz = () => {
+  const submitCurrentQuiz = async () => {
+    setSubmitError(null);
+
+    if (!canScore) {
+      setSubmitError(
+        "Backend quiz belum mengirim jawaban benar, jadi frontend belum bisa menghitung score/accuracy dengan aman.",
+      );
+      return;
+    }
+
     const correctCount = article.questions.filter(
       (question) => answers[question.id] === question.answer,
     ).length;
     const score = Math.round((correctCount / article.questions.length) * 100);
     const accuracy = Number(((correctCount / article.questions.length) * 100).toFixed(1));
 
+    if (article.source === "api") {
+      setSubmitting(true);
+      const response = await submitQuiz(article.id, score, accuracy);
+      setSubmitting(false);
+
+      if (!response.success) {
+        setSubmitError(response.message);
+        return;
+      }
+    }
+
     router.push(
       `/bacaankuis/${article.id}/hasil?score=${score}&accuracy=${accuracy}&answered=${answeredCount}`,
     );
   };
 
+  if (!currentQuestion) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-5 py-8">
+        <Link href="/bacaankuis" className="inline-flex items-center gap-2 text-sm text-zinc-500">
+          <ArrowLeft className="size-4" />
+          Kembali ke katalog
+        </Link>
+        <h1 className="mt-6 text-2xl font-semibold leading-tight">{article.title}</h1>
+        <p className="mt-3 text-sm leading-6 text-zinc-600">
+          {notice ?? "Artikel ditemukan, tetapi kuis belum tersedia dari backend."}
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f5f0e6_0%,_#f8f8f6_24%,_#edf4ef_100%)] text-zinc-900">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-6 md:px-8 md:py-8">
-        <div className="rounded-[2rem] border border-black/5 bg-white/80 px-5 py-5 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)] backdrop-blur md:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-4">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-5 md:px-8 md:py-8">
+        <div className="rounded-2xl border border-black/5 bg-white/80 px-5 py-5 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)] backdrop-blur md:px-8">
+          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="min-w-0 space-y-4">
               <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
                 <Link href="/bacaankuis" className="inline-flex items-center gap-2 hover:text-zinc-900">
                   <ArrowLeft className="size-4" />
@@ -68,30 +108,31 @@ export function ReadingQuizExperience({ article }: Props) {
               </div>
 
               <div className="space-y-3">
-                <Badge className="bg-emerald-700 px-3 py-1 text-white">{article.difficulty}</Badge>
-                <h1 className="max-w-3xl text-3xl leading-tight font-semibold text-balance md:text-5xl">
+                <Badge className="max-w-full whitespace-normal bg-emerald-700 px-3 py-1 text-white">{article.difficulty}</Badge>
+                <h1 className="max-w-3xl text-3xl leading-tight font-semibold text-pretty md:text-[2.75rem]">
                   {article.title}
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-zinc-600">{article.summary}</p>
+                {notice ? <p className="max-w-3xl text-sm leading-6 text-zinc-500">{notice}</p> : null}
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3 lg:w-[28rem]">
+            <div className="grid min-w-0 gap-3 md:grid-cols-3 lg:w-[28rem]">
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Waktu baca</p>
+                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Waktu baca</p>
                   <p className="text-lg font-semibold">{article.readTime}</p>
                 </CardContent>
               </Card>
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Jumlah soal</p>
+                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Jumlah soal</p>
                   <p className="text-lg font-semibold">{article.questions.length}</p>
                 </CardContent>
               </Card>
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Aturan</p>
+                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Aturan</p>
                   <p className="text-lg font-semibold">One take</p>
                 </CardContent>
               </Card>
@@ -99,15 +140,15 @@ export function ReadingQuizExperience({ article }: Props) {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.82fr]">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.82fr)]">
           <Card className="overflow-hidden border-black/5 bg-white/82">
-            <div className={`h-36 bg-gradient-to-r ${article.accent} px-6 py-5 md:px-8`}>
-              <div className="flex h-full flex-col justify-between">
-                <div className="flex items-center gap-3 text-zinc-800">
+            <div className={`min-h-[9rem] bg-gradient-to-r ${article.accent} px-5 py-5 md:px-8`}>
+              <div className="flex min-h-[6.5rem] flex-col justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3 text-zinc-800">
                   <div className="rounded-2xl bg-white/65 p-3">
                     <BookOpenText className="size-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">Ruang Baca</p>
                     <p className="text-sm text-zinc-700/80">
                       Fokuskan tampilan bacaan agar tetap nyaman dibaca di desktop maupun mobile.
@@ -127,8 +168,8 @@ export function ReadingQuizExperience({ article }: Props) {
             </div>
 
             <CardContent className="space-y-6 p-6 md:p-8">
-              <div className="rounded-[1.75rem] bg-[#fffdf7] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-black/5 md:p-8">
-                <div className="mx-auto max-w-3xl space-y-5 font-serif text-[1.05rem] leading-8 text-zinc-700">
+              <div className="rounded-2xl bg-[#fffdf7] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-black/5 md:p-7">
+                <div className="mx-auto max-w-3xl space-y-5 font-serif text-base leading-8 text-zinc-700 md:text-[1.05rem]">
                   {article.paragraphs.map((paragraph) => (
                     <p key={paragraph}>{paragraph}</p>
                   ))}
@@ -198,10 +239,10 @@ export function ReadingQuizExperience({ article }: Props) {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">
+                    <p className="text-xs tracking-wide text-zinc-500 uppercase">
                       Soal {currentQuestionIndex + 1} dari {article.questions.length}
                     </p>
-                    <h2 className="text-xl leading-8 font-semibold text-zinc-950">
+                    <h2 className="text-lg leading-7 font-semibold text-zinc-950 sm:text-xl sm:leading-8">
                       {currentQuestion.question}
                     </h2>
                   </div>
@@ -220,7 +261,7 @@ export function ReadingQuizExperience({ article }: Props) {
                       <label
                         key={option}
                         className={cn(
-                          "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
+                          "flex min-w-0 cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
                           selectedAnswer === option
                             ? "border-zinc-950 bg-zinc-950 text-white"
                             : "border-zinc-200 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300",
@@ -234,7 +275,7 @@ export function ReadingQuizExperience({ article }: Props) {
                 </div>
 
                 <div className="grid gap-3 rounded-3xl bg-zinc-50 p-4">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Checkpoint</p>
+                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Checkpoint</p>
                   <p className="text-sm leading-6 text-zinc-700">
                     Soal yang sudah terjawab:{" "}
                     {answeredQuestionNumbers.length > 0 ? answeredQuestionNumbers.join(", ") : "belum ada"}
@@ -242,13 +283,14 @@ export function ReadingQuizExperience({ article }: Props) {
                   <p className="text-sm leading-6 text-zinc-500">
                     Halaman hasil akan menampilkan score dan accuracy seperti payload submit backend.
                   </p>
+                  {submitError ? <p className="text-sm leading-6 text-red-600">{submitError}</p> : null}
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-zinc-100 pt-4 sm:flex-row">
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 rounded-full"
+                    className="h-auto min-h-9 flex-1 whitespace-normal rounded-full px-4 py-2 text-center"
                     onClick={() => setCurrentQuestionIndex((index) => Math.max(0, index - 1))}
                     disabled={currentQuestionIndex === 0}
                   >
@@ -259,7 +301,7 @@ export function ReadingQuizExperience({ article }: Props) {
                   {currentQuestionIndex < article.questions.length - 1 ? (
                     <Button
                       type="button"
-                      className="flex-1 rounded-full bg-zinc-950 text-white hover:bg-zinc-800"
+                      className="h-auto min-h-9 flex-1 whitespace-normal rounded-full bg-zinc-950 px-4 py-2 text-center text-white hover:bg-zinc-800"
                       onClick={() =>
                         setCurrentQuestionIndex((index) => Math.min(article.questions.length - 1, index + 1))
                       }
@@ -270,11 +312,11 @@ export function ReadingQuizExperience({ article }: Props) {
                   ) : (
                     <Button
                       type="button"
-                      className="flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
-                      disabled={!hasFinishedAll}
-                      onClick={submitQuiz}
+                      className="h-auto min-h-9 flex-1 whitespace-normal rounded-full bg-emerald-700 px-4 py-2 text-center text-white hover:bg-emerald-800"
+                      disabled={!hasFinishedAll || submitting}
+                      onClick={submitCurrentQuiz}
                     >
-                      Submit mockup
+                      {submitting ? "Mengirim..." : article.source === "api" ? "Submit ke backend" : "Submit mockup"}
                       <Send className="size-4" />
                     </Button>
                   )}
@@ -284,7 +326,7 @@ export function ReadingQuizExperience({ article }: Props) {
 
             <Card className="border-black/5 bg-zinc-950 text-white">
               <CardContent className="space-y-3 p-6">
-                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Rule backend</p>
+                <p className="text-xs tracking-wide text-zinc-400 uppercase">Rule backend</p>
                 <p className="text-lg font-semibold">Kuis ini diasumsikan satu kali submit</p>
                 <p className="text-sm leading-6 text-zinc-400">
                   Karena service Java menyimpan attempt per artikel dan menolak submit ulang, desain CTA dibuat
