@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 
 type LegacyQuizItem = {
-  kuisId: string;
-  kuisTitle: string;
+  id: string;
+  title: string;
 };
 
 export default function ConnectivityTest() {
@@ -11,15 +11,15 @@ export default function ConnectivityTest() {
   const [status, setStatus] = useState('Connecting...');
 
   useEffect(() => {
-    // This calls your Spring Boot Backend
-    fetch('http://localhost:8080/api/bacaankuis')
+    fetch('/api/v1/articles')
       .then((res) => {
         if (!res.ok) throw new Error('Backend Unreachable');
         return res.json();
       })
-      .then((data) => {
-        setData(data);
-        setStatus('Success! Connected to Java & PostgreSQL.');
+      .then((payload) => {
+        if (!payload.success) throw new Error(payload.message);
+        setData(payload.data ?? []);
+        setStatus('Success! Connected to Java through Next BFF.');
       })
       .catch((err) => setStatus(`Error: ${err.message}`));
   }, []);
@@ -36,8 +36,8 @@ export default function ConnectivityTest() {
         {data.length > 0 ? (
           <ul className="mt-2 list-disc pl-5">
             {data.map((item) => (
-              <li key={item.kuisId} className="mt-1">
-                {item.kuisTitle} <span className="text-gray-400 text-sm">({item.kuisId})</span>
+              <li key={item.id} className="mt-1">
+                {item.title} <span className="text-gray-400 text-sm">({item.id})</span>
               </li>
             ))}
           </ul>

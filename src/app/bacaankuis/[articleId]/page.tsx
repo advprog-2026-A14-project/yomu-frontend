@@ -1,7 +1,4 @@
-import { notFound } from "next/navigation";
-
-import { ReadingQuizExperience } from "@/src/components/bacaankuis/ReadingQuizExperience";
-import { getMockArticle } from "@/src/lib/mock/bacaankuis";
+import { ReadingQuizPageClient } from "@/src/components/bacaankuis/ReadingQuizPageClient";
 
 type Props = {
   params: Promise<{
@@ -11,11 +8,6 @@ type Props = {
 
 export default async function ArticleQuizPage({ params }: Props) {
   const { articleId } = await params;
-  const article = getMockArticle(articleId);
 
-  if (!article) {
-    notFound();
-  }
-
-  return <ReadingQuizExperience article={article} />;
+  return <ReadingQuizPageClient articleId={articleId} />;
 }

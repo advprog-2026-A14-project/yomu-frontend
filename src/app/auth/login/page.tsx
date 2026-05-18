@@ -36,8 +36,8 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4">
-      <h1 className="text-2xl font-semibold">Login</h1>
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-8">
+      <h1 className="text-2xl font-semibold leading-tight">Login</h1>
 
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-1">
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="w-full rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="min-h-10 w-full rounded bg-black px-4 py-2 text-center text-white disabled:opacity-50"
           disabled={loading}
         >
           {loading ? "Loading..." : "Login"}
