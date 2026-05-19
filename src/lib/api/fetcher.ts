@@ -33,6 +33,14 @@ export function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
 }
 
 export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<ApiResponse<T>> {
+  const result = await apiFetchWithStatus<T>(url, init);
+  return result.response;
+}
+
+export async function apiFetchWithStatus<T>(
+  url: string,
+  init: RequestInit = {},
+): Promise<{ status: number; response: ApiResponse<T> }> {
   const headers = new Headers(init.headers);
 
   if (typeof init.body === "string" && isJsonString(init.body) && !headers.has("Content-Type")) {
@@ -52,15 +60,27 @@ export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<
     try {
       payload = await response.json();
     } catch {
-      return { success: false, message: "Terjadi kesalahan jaringan" };
+      return {
+        status: response.status,
+        response: { success: false, message: "Terjadi kesalahan jaringan" },
+      };
     }
 
     if (!isApiResponse<T>(payload)) {
-      return { success: false, message: "Upstream response invalid" };
+      return {
+        status: response.status,
+        response: { success: false, message: "Upstream response invalid" },
+      };
     }
 
-    return payload;
+    return {
+      status: response.status,
+      response: payload,
+    };
   } catch {
-    return { success: false, message: "Terjadi kesalahan jaringan" };
+    return {
+      status: 0,
+      response: { success: false, message: "Terjadi kesalahan jaringan" },
+    };
   }
 }
