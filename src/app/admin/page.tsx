@@ -111,7 +111,7 @@ export default function AdminPage() {
               <RotateCcw className="size-5 text-zinc-700" />
               <h2 className="font-semibold">Outbox Sync</h2>
               <p className="text-sm leading-6 text-zinc-600">
-                Backend Java sudah punya endpoint retry failed sync. Frontend BFF/admin UI detail bisa
+                Backend Java sudah punya endpoint retry failed sync. Frontend admin UI detail bisa
                 ditambahkan di atas pola auth yang sama.
               </p>
             </CardContent>

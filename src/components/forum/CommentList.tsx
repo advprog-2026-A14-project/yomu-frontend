@@ -95,9 +95,9 @@ function CommentItem({
         )}
       </div>
 
-      {comment.replies?.length > 0 && (
+      {(comment.replies?.length ?? 0) > 0 && (
         <div className="mt-2 space-y-2">
-          {comment.replies.map((reply) => (
+          {(comment.replies ?? []).map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}

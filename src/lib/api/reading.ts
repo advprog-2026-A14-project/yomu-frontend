@@ -1,4 +1,5 @@
 import { apiFetch } from "./fetcher";
+import { getAccessToken, getStoredUser } from "./auth";
 
 export type QuizQuestion = {
   id: string;
@@ -122,7 +123,7 @@ export function normalizeArticle(raw: BackendArticle, index = 0): ReadingArticle
     difficulty: "Pemanasan",
     completionRate: 0,
     accent: accents[index % accents.length],
-    insight: "Artikel ini berasal dari Java Core melalui Next BFF.",
+    insight: "Artikel ini berasal langsung dari Java Core.",
     paragraphs,
     questions: [],
     source: "api",
@@ -201,9 +202,18 @@ export async function getQuizzes(articleId: string) {
 }
 
 export async function submitQuiz(articleId: string, score: number, accuracy: number) {
+  const token = getAccessToken();
+  const user = getStoredUser();
+
+  if (!token || !user) {
+    return { success: false as const, message: "Login diperlukan untuk submit kuis" };
+  }
+
   return apiFetch<unknown>(`/api/v1/quizzes/${articleId}/submit`, {
     method: "POST",
+    token,
     body: JSON.stringify({
+      user_id: user.user_id,
       score,
       accuracy,
     }),

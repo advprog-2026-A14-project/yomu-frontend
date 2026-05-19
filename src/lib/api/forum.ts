@@ -1,4 +1,5 @@
 import { apiFetch } from "./fetcher";
+import { getAccessToken } from "./auth";
 
 export type Comment = {
   id: string;
@@ -10,7 +11,7 @@ export type Comment = {
   reaction_count: number;
   clan_name: string | null;
   tier: string | null;
-  replies: Comment[];
+  replies?: Comment[] | null;
 };
 
 export async function getComments(articleId: string) {
@@ -20,8 +21,15 @@ export async function getComments(articleId: string) {
 }
 
 export async function createComment(articleId: string, content: string, parentCommentId?: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk membuat komentar" };
+  }
+
   return apiFetch<Comment>(`/api/v1/forums/${articleId}/comments`, {
     method: "POST",
+    token,
     body: JSON.stringify({
       content,
       parent_comment_id: parentCommentId ?? null,
@@ -30,6 +38,12 @@ export async function createComment(articleId: string, content: string, parentCo
 }
 
 export async function toggleReaction(commentId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk memberi reaksi" };
+  }
+
   return apiFetch<{
     comment_id: string;
     reaction_type: string;
@@ -37,6 +51,7 @@ export async function toggleReaction(commentId: string) {
     reaction_count: number;
   }>(`/api/v1/forums/comments/${commentId}/reactions`, {
     method: "POST",
+    token,
     body: JSON.stringify({ reaction_type: "UPVOTE" }),
   });
 }

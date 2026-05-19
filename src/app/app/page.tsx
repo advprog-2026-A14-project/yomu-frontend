@@ -19,7 +19,7 @@ const navItems = [
   {
     href: "/leaderboard",
     title: "Leaderboard",
-    description: "Lihat ranking clan dari Rust Engine melalui BFF.",
+    description: "Lihat ranking clan langsung dari Rust Engine.",
     icon: Trophy,
   },
   {

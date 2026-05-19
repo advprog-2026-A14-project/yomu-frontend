@@ -87,7 +87,7 @@ export default function LeaderboardPage() {
             <Card className="border-zinc-200 bg-white">
               <CardContent className="p-5 text-sm leading-6 text-zinc-600">
                 Belum ada data leaderboard yang bisa ditampilkan. Pastikan Rust Engine aktif, JWT secret sama
-                dengan Java, dan `RUST_ENGINE_BASE_URL` sudah benar.
+                dengan Java, dan `NEXT_PUBLIC_RUST_ENGINE_BASE_URL` sudah benar.
               </CardContent>
             </Card>
           )}

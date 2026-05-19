@@ -1,5 +1,23 @@
 import type { ApiResponse } from "./types";
 
+type ApiFetchOptions = RequestInit & {
+  baseUrl?: string;
+  token?: string | null;
+};
+
+type ApiFetchResult<T> = {
+  status: number;
+  response: ApiResponse<T>;
+};
+
+const defaultApiBaseUrl =
+  process.env.NEXT_PUBLIC_YOMU_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8081";
+
+export const API_BASE_URL = defaultApiBaseUrl;
+
+export const RUST_API_BASE_URL =
+  process.env.NEXT_PUBLIC_RUST_ENGINE_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8080";
+
 function isJsonString(value: string): boolean {
   const trimmed = value.trim();
 
@@ -32,18 +50,34 @@ export function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
   return true;
 }
 
-export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<ApiResponse<T>> {
-  const headers = new Headers(init.headers);
+function buildApiUrl(path: string, baseUrl: string) {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
 
-  if (typeof init.body === "string" && isJsonString(init.body) && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export async function apiFetchWithStatus<T>(
+  path: string,
+  { baseUrl = API_BASE_URL, token, headers, ...init }: ApiFetchOptions = {},
+): Promise<ApiFetchResult<T>> {
+  const requestHeaders = new Headers(headers);
+
+  requestHeaders.set("Accept", requestHeaders.get("Accept") ?? "application/json");
+
+  if (typeof init.body === "string" && isJsonString(init.body) && !requestHeaders.has("Content-Type")) {
+    requestHeaders.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(buildApiUrl(path, baseUrl), {
       ...init,
-      headers,
-      credentials: init.credentials ?? "same-origin",
+      headers: requestHeaders,
       cache: init.cache ?? "no-store",
     });
 
@@ -52,15 +86,32 @@ export async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<
     try {
       payload = await response.json();
     } catch {
-      return { success: false, message: "Terjadi kesalahan jaringan" };
+      return {
+        status: response.status,
+        response: { success: false, message: "Terjadi kesalahan jaringan" },
+      };
     }
 
     if (!isApiResponse<T>(payload)) {
-      return { success: false, message: "Upstream response invalid" };
+      return {
+        status: response.status,
+        response: { success: false, message: "Upstream response invalid" },
+      };
     }
 
-    return payload;
+    return {
+      status: response.status,
+      response: payload,
+    };
   } catch {
-    return { success: false, message: "Terjadi kesalahan jaringan" };
+    return {
+      status: 0,
+      response: { success: false, message: "Terjadi kesalahan jaringan" },
+    };
   }
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<ApiResponse<T>> {
+  const result = await apiFetchWithStatus<T>(path, options);
+  return result.response;
 }
