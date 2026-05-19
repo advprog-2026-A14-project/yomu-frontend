@@ -114,7 +114,7 @@ export default function ClansPage() {
             <div>
               <h2 className="font-semibold">Buat Clan</h2>
               <p className="mt-1 text-sm leading-6 text-zinc-600">
-                Form ini memanggil Rust `POST /api/v1/clans` lewat Next BFF dan memakai `user_id` dari session.
+                Form ini memanggil Rust `POST /api/v1/clans` langsung dari browser dan memakai `user_id` dari session.
               </p>
             </div>
             <form className="flex min-w-0 flex-col gap-3 sm:flex-row" onSubmit={onCreateClan}>
