@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, BookOpenText, ChartNoAxesColumn, CircleCheckBig } from "lucide-react";
 
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
-import { getMockArticle } from "@/src/lib/mock/bacaankuis";
+import { categoryAccent } from "@/src/lib/bacaankuis";
+import { getArticleById } from "@/src/lib/server/bacaankuis";
+import { getCurrentUser } from "@/src/lib/server/session";
 
 type Props = {
   params: Promise<{
@@ -14,39 +16,74 @@ type Props = {
   searchParams: Promise<{
     score?: string;
     accuracy?: string;
-    answered?: string;
+    correct?: string;
+    total?: string;
+    repeat?: string;
   }>;
 };
+
+function parseMetric(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatMetric(value: number | null, suffix = "") {
+  if (value === null) {
+    return "-";
+  }
+
+  const rounded = Number(value.toFixed(2));
+  return `${rounded}${suffix}`;
+}
 
 export default async function ArticleQuizResultPage({ params, searchParams }: Props) {
   const { articleId } = await params;
   const query = await searchParams;
-  const article = getMockArticle(articleId);
+  const userResponse = await getCurrentUser();
 
-  if (!article) {
+  if (!userResponse.success || !("data" in userResponse) || !userResponse.data) {
+    redirect("/auth/login");
+  }
+
+  const articleResponse = await getArticleById(articleId);
+
+  if (!articleResponse.success || !("data" in articleResponse) || !articleResponse.data) {
     notFound();
   }
 
-  const score = Number(query.score ?? 0);
-  const accuracy = Number(query.accuracy ?? 0);
-  const answered = Number(query.answered ?? 0);
+  const article = articleResponse.data;
+  const score = parseMetric(query.score);
+  const accuracy = parseMetric(query.accuracy);
+  const correct = parseMetric(query.correct);
+  const total = parseMetric(query.total);
+  const isRepeatResult = query.repeat === "1";
+  const hasResultMetrics = score !== null && accuracy !== null && correct !== null && total !== null;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f3efe4_0%,_#f7f8f4_32%,_#edf4ef_100%)] text-zinc-900">
       <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center gap-6 px-5 py-10 md:px-8">
         <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/85 shadow-[0_28px_70px_-40px_rgba(58,94,71,0.42)]">
-          <div className={`bg-gradient-to-r ${article.accent} px-6 py-8 md:px-8`}>
+          <div className={`bg-gradient-to-r ${categoryAccent(article.category)} px-6 py-8 md:px-8`}>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div className="space-y-3">
                 <Badge variant="outline" className="border-zinc-900/10 bg-white/65 text-zinc-800">
-                  Hasil Mockup
+                  {isRepeatResult ? "Hasil tersimpan" : "Ringkasan hasil"}
                 </Badge>
                 <h1 className="text-3xl leading-tight font-semibold md:text-4xl">
-                  Kamu sudah menuntaskan {article.title}
+                  {isRepeatResult
+                    ? `Kamu sudah pernah menyelesaikan ${article.title}`
+                    : `Kamu sudah menuntaskan ${article.title}`}
                 </h1>
                 <p className="max-w-2xl text-sm leading-7 text-zinc-700 md:text-base">
-                  Tampilan ini meniru state setelah `POST /api/v1/quizzes/{articleId}/submit`: frontend
-                  merangkum score, accuracy, dan status attempt akhir.
+                  {hasResultMetrics
+                    ? isRepeatResult
+                      ? "Kuis ini hanya bisa dikerjakan satu kali. Ini adalah hasil terakhir yang sudah tersimpan di backend."
+                      : "Jawabanmu sudah diproses oleh backend. Nilai di bawah ini adalah hasil final dari submit kuis untuk artikel ini."
+                    : "Submit kuis berhasil, tetapi frontend belum menerima paket nilai lengkap dari backend untuk sesi ini."}
                 </p>
               </div>
 
@@ -55,7 +92,9 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                   <CircleCheckBig className="size-10 text-emerald-700" />
                   <div>
                     <p className="text-sm text-zinc-600">Status</p>
-                    <p className="text-lg font-semibold text-zinc-900">Sudah dikerjakan</p>
+                    <p className="text-lg font-semibold text-zinc-900">
+                      {isRepeatResult ? "Sudah pernah dikerjakan" : "Submit berhasil"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -67,21 +106,24 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
               <Card className="border-black/5 bg-zinc-950 text-white">
                 <CardContent className="space-y-2 p-6">
                   <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Score</p>
-                  <p className="text-4xl font-semibold">{score}</p>
+                  <p className="text-4xl font-semibold">{formatMetric(score)}</p>
                 </CardContent>
               </Card>
 
               <Card className="border-black/5 bg-white">
                 <CardContent className="space-y-2 p-6">
                   <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Accuracy</p>
-                  <p className="text-4xl font-semibold">{accuracy}%</p>
+                  <p className="text-4xl font-semibold">{formatMetric(accuracy, "%")}</p>
                 </CardContent>
               </Card>
 
               <Card className="border-black/5 bg-white">
                 <CardContent className="space-y-2 p-6">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Terjawab</p>
-                  <p className="text-4xl font-semibold">{answered}</p>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Benar</p>
+                  <p className="text-4xl font-semibold">
+                    {formatMetric(correct)}
+                    {total !== null ? ` / ${formatMetric(total)}` : ""}
+                  </p>
                 </CardContent>
               </Card>
 
@@ -92,8 +134,9 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                     <p className="font-medium text-emerald-950">Interpretasi singkat</p>
                   </div>
                   <p className="text-sm leading-6 text-emerald-950/80">
-                    Hasil ini cocok dijadikan halaman penutup yang ringan. Kalau nanti backend menambah riwayat
-                    attempt, kartu ini bisa berkembang menjadi ringkasan progres belajar.
+                    {hasResultMetrics
+                      ? "Karena penilaian dilakukan di backend, hasil ini sudah konsisten dengan aturan one-attempt dan sinkronisasi hasil final ke service lain."
+                      : "Kalau ini masih muncul tanpa angka, berarti response submit yang sampai ke frontend belum membawa data score, accuracy, correct_count, dan total_questions secara lengkap."}
                   </p>
                 </CardContent>
               </Card>
@@ -102,8 +145,8 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
             <Card className="border-black/5 bg-[#fffdf7]">
               <CardContent className="space-y-6 p-6">
                 <div className="space-y-2">
-                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Kenapa desain ini cocok</p>
-                  <h2 className="text-2xl font-semibold">Sederhana, final, dan nyambung ke kontrak API</h2>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Kenapa flow ini lebih rapi</p>
+                  <h2 className="text-2xl font-semibold">Frontend fokus pada jawaban, backend fokus pada grading</h2>
                 </div>
 
                 <div className="grid gap-4">
@@ -113,21 +156,21 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                       <p className="font-medium">Artikel tetap jadi pusat pengalaman</p>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      User merasa menyelesaikan satu sesi belajar, bukan sekadar mengirim formulir skor.
+                      User membaca dan menjawab dalam satu halaman, lalu melihat hasil final tanpa tebakan nilai di frontend.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-                    <p className="font-medium">One take terasa jelas</p>
+                    <p className="font-medium">Admin dan user punya flow yang berbeda</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      Karena backend mencegah submit ulang, status akhir dibuat tegas dengan CTA menuju bacaan lain.
+                      User biasa hanya melihat pengalaman baca dan kuis, sedangkan admin mendapat panel kelola konten langsung di halaman artikel.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-                    <p className="font-medium">Mudah dihubungkan ke backend asli</p>
+                    <p className="font-medium">Kontrak API lebih aman</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      Nantinya angka score dan accuracy tinggal diganti dari response submit atau state frontend.
+                      Jawaban benar tetap dijaga di backend, sementara frontend cukup mengirim jawaban user dan menampilkan hasil akhir.
                     </p>
                   </div>
                 </div>
