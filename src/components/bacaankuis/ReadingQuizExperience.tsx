@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpenText, CheckCircle2, Clock3, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, CheckCircle2, Clock3, MessageCircle, Send } from "lucide-react";
 
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -96,6 +96,15 @@ export function ReadingQuizExperience({ article }: Props) {
                 </CardContent>
               </Card>
             </div>
+          </div>
+
+          <div className="mt-5 flex justify-end">
+            <Button asChild variant="outline" className="rounded-full border-zinc-200 bg-white/75">
+              <Link href={`/forums/${article.id}`}>
+                <MessageCircle className="size-4" />
+                Diskusi
+              </Link>
+            </Button>
           </div>
         </div>
 
