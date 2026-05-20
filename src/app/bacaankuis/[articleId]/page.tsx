@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { ReadingQuizExperience } from "@/src/components/bacaankuis/ReadingQuizExperience";
 import { getArticleById, getQuizQuestions } from "@/src/lib/server/bacaankuis";
@@ -12,10 +12,15 @@ type Props = {
 
 export default async function ArticleQuizPage({ params }: Props) {
   const { articleId } = await params;
-  const [articleResponse, quizResponse, userResponse] = await Promise.all([
+  const userResponse = await getCurrentUser();
+
+  if (!userResponse.success || !("data" in userResponse) || !userResponse.data) {
+    redirect("/auth/login");
+  }
+
+  const [articleResponse, quizResponse] = await Promise.all([
     getArticleById(articleId),
     getQuizQuestions(articleId),
-    getCurrentUser(),
   ]);
 
   if (!articleResponse.success || !("data" in articleResponse) || !articleResponse.data) {
@@ -26,14 +31,9 @@ export default async function ArticleQuizPage({ params }: Props) {
     quizResponse.success && "data" in quizResponse && quizResponse.data ? quizResponse.data : [];
 
   const isAdmin =
-    userResponse.success && "data" in userResponse && userResponse.data
-      ? userResponse.data.role === "ADMIN"
-      : false;
+    userResponse.data.role === "ADMIN";
 
-  const adminName =
-    userResponse.success && "data" in userResponse && userResponse.data
-      ? userResponse.data.display_name
-      : null;
+  const adminName = userResponse.data.display_name;
 
   return (
     <ReadingQuizExperience

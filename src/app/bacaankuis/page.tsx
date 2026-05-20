@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { ReadingCatalog } from "@/src/components/bacaankuis/ReadingCatalog";
 import { getArticles } from "@/src/lib/server/bacaankuis";
 import { getCurrentUser } from "@/src/lib/server/session";
@@ -10,10 +12,15 @@ type Props = {
 
 export default async function BacaanKuisPage({ searchParams }: Props) {
   const { category } = await searchParams;
-  const [articlesResponse, allArticlesResponse, userResponse] = await Promise.all([
+  const userResponse = await getCurrentUser();
+
+  if (!userResponse.success || !("data" in userResponse) || !userResponse.data) {
+    redirect("/auth/login");
+  }
+
+  const [articlesResponse, allArticlesResponse] = await Promise.all([
     getArticles(category),
     getArticles(),
-    getCurrentUser(),
   ]);
 
   const categories =
@@ -29,14 +36,9 @@ export default async function BacaanKuisPage({ searchParams }: Props) {
       : [];
 
   const isAdmin =
-    userResponse.success && "data" in userResponse && userResponse.data
-      ? userResponse.data.role === "ADMIN"
-      : false;
+    userResponse.data.role === "ADMIN";
 
-  const adminName =
-    userResponse.success && "data" in userResponse && userResponse.data
-      ? userResponse.data.display_name
-      : null;
+  const adminName = userResponse.data.display_name;
 
   return (
     <ReadingCatalog

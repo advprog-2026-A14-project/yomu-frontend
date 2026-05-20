@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, BookOpenText, ChartNoAxesColumn, CircleCheckBig } from "lucide-react";
 
 import { Badge } from "@/src/components/ui/badge";
@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { categoryAccent } from "@/src/lib/bacaankuis";
 import { getArticleById } from "@/src/lib/server/bacaankuis";
+import { getCurrentUser } from "@/src/lib/server/session";
 
 type Props = {
   params: Promise<{
@@ -42,6 +43,12 @@ function formatMetric(value: number | null, suffix = "") {
 export default async function ArticleQuizResultPage({ params, searchParams }: Props) {
   const { articleId } = await params;
   const query = await searchParams;
+  const userResponse = await getCurrentUser();
+
+  if (!userResponse.success || !("data" in userResponse) || !userResponse.data) {
+    redirect("/auth/login");
+  }
+
   const articleResponse = await getArticleById(articleId);
 
   if (!articleResponse.success || !("data" in articleResponse) || !articleResponse.data) {

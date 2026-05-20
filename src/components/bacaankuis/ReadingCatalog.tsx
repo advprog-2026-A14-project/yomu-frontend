@@ -82,7 +82,7 @@ export function ReadingCatalog({
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full border-emerald-900/15 bg-white/70 px-6">
-                  <Link href="/">Kembali ke home</Link>
+                  <Link href="/app">Kembali ke home</Link>
                 </Button>
               </div>
             </div>
