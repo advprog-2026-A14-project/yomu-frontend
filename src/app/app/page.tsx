@@ -2,8 +2,32 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BookOpenText, LogOut, MessageSquareText, Trophy } from "lucide-react";
 
+import { DashboardReadingPreview } from "@/src/components/bacaankuis/DashboardReadingPreview";
+import { DashboardForumPreview } from "@/src/components/forum/DashboardForumPreview";
+import { Badge } from "@/src/components/ui/badge";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent } from "@/src/components/ui/card";
 import { logout, me, type User } from "@/src/lib/api/auth";
+
+const quickStats = [
+  {
+    title: "Bacaan aktif",
+    description: "Masuk ke ruang baca dan kuis dari preview dashboard.",
+    icon: BookOpenText,
+  },
+  {
+    title: "Diskusi artikel",
+    description: "Setelah baca atau kuis, kamu bisa lanjut ngobrol di forum artikel terkait.",
+    icon: MessageSquareText,
+  },
+  {
+    title: "Progress belajar",
+    description: "Flow baca, jawab, dan lihat hasil akhir sekarang sudah nyambung ke backend grading.",
+    icon: Trophy,
+  },
+];
 
 export default function AppPage() {
   const router = useRouter();
@@ -42,7 +66,7 @@ export default function AppPage() {
       setLoading(false);
     };
 
-    checkSession();
+    void checkSession();
 
     return () => {
       active = false;
@@ -68,16 +92,60 @@ export default function AppPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <h1 className="text-2xl font-semibold">Hello Pelajar, {user.display_name}</h1>
-      <button
-        type="button"
-        className="mt-4 rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        onClick={onLogout}
-        disabled={loggingOut}
-      >
-        {loggingOut ? "Logout..." : "Logout"}
-      </button>
+    <main className="min-h-screen bg-[linear-gradient(180deg,_#f4efe3_0%,_#f7f7f4_38%,_#eef4ef_100%)]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 md:px-8 lg:px-10">
+        <section className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/82 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.35)]">
+          <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-5 border-b border-zinc-200/70 bg-[radial-gradient(circle_at_top_left,_rgba(213,247,235,0.92),_rgba(248,243,228,0.84)_42%,_rgba(255,255,255,0.95)_100%)] px-6 py-7 lg:border-r lg:border-b-0 lg:px-8 lg:py-8">
+              <Badge className="w-fit bg-emerald-700 px-3 py-1 text-white">Dashboard Pelajar</Badge>
+              <div className="space-y-3">
+                <h1 className="max-w-3xl text-4xl leading-tight font-semibold text-zinc-950">
+                  Halo, {user.display_name}
+                </h1>
+                <p className="max-w-2xl text-sm leading-7 text-zinc-600 md:text-base">
+                  Dashboard ini jadi tempat masuk utama untuk belajar. Dari sini kamu bisa lihat preview
+                  bacaan, lanjut ke kuis, dan pindah ke diskusi artikel tanpa perlu cari-cari route sendiri.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={onLogout}
+                  disabled={loggingOut}
+                >
+                  <LogOut className="size-4" />
+                  {loggingOut ? "Logout..." : "Logout"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 px-6 py-7 lg:px-8 lg:py-8">
+              {quickStats.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Card key={item.title} className="border-black/5 bg-white/82 shadow-none">
+                    <CardContent className="flex items-start gap-4 p-5">
+                      <div className="rounded-2xl bg-zinc-950 p-3 text-white">
+                        <Icon className="size-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-medium text-zinc-950">{item.title}</p>
+                        <p className="text-sm leading-6 text-zinc-600">{item.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <DashboardReadingPreview />
+        <DashboardForumPreview />
+      </div>
     </main>
   );
 }
