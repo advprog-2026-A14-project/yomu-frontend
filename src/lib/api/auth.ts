@@ -101,7 +101,29 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout() {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("yomu_access_token");
+  }
   return apiFetch<never>("/api/v1/auth/logout", {
     method: "POST",
   });
+}
+
+export function storeAuthToken(token: string) {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("yomu_access_token", token);
+  }
+}
+
+export function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem("yomu_access_token");
+}
+
+export async function getCurrentUserId(): Promise<string | null> {
+  const result = await me();
+  if (result.response.success && "data" in result.response && result.response.data) {
+    return result.response.data.user_id;
+  }
+  return null;
 }
