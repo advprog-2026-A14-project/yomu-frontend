@@ -24,6 +24,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image-tag: ${{ steps.env.outputs.image_tag }}
 
     steps:
       - name: Checkout repository
@@ -31,6 +33,21 @@ jobs:
 
       - name: Lowercase IMAGE_NAME
         run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
+
+      - name: Set build environment per branch
+        id: env
+        run: |
+          if [[ "${{ github.ref_name }}" == "staging" ]]; then
+            echo "yomu_api_base_url=https://java-staging.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "rust_engine_base_url=https://rust-staging.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "rust_engine_url=https://rust-staging.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "image_tag=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "yomu_api_base_url=https://java.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "rust_engine_base_url=https://rust.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "rust_engine_url=https://rust.yomu.my.id" >> "$GITHUB_OUTPUT"
+            echo "image_tag=latest" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -52,7 +69,7 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.env.outputs.image_tag }},enable=true
 
       - name: Build and push with Docker Buildx
         uses: docker/build-push-action@v6
@@ -69,9 +86,9 @@ jobs:
             VERSION=${{ steps.meta.outputs.version }}
             VCS_REF=${{ github.sha }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-            NEXT_PUBLIC_YOMU_API_BASE_URL=${{ secrets.YOMU_API_BASE_URL }}
-            NEXT_PUBLIC_RUST_ENGINE_BASE_URL=${{ secrets.RUST_ENGINE_BASE_URL }}
-            NEXT_PUBLIC_RUST_ENGINE_URL=${{ secrets.RUST_ENGINE_BASE_URL }}
+            NEXT_PUBLIC_YOMU_API_BASE_URL=${{ steps.env.outputs.yomu_api_base_url }}
+            NEXT_PUBLIC_RUST_ENGINE_BASE_URL=${{ steps.env.outputs.rust_engine_base_url }}
+            NEXT_PUBLIC_RUST_ENGINE_URL=${{ steps.env.outputs.rust_engine_url }}
 
   lint-and-build:
     name: Lint & Build (CI)
@@ -127,14 +144,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull image
-        run: docker pull ${{ env.REGISTRY }}/$IMAGE_NAME:latest
+        run: docker pull ${{ env.REGISTRY }}/$IMAGE_NAME:${{ needs.build.outputs.image-tag }}
 
       - name: Health check
         run: |
           docker run -d --name test-app \
             -p 3000:3000 \
             -e CORE_API_BASE_URL=http://localhost:8080 \
-            ${{ env.REGISTRY }}/$IMAGE_NAME:latest
+            ${{ env.REGISTRY }}/$IMAGE_NAME:${{ needs.build.outputs.image-tag }}
 
           for i in $(seq 1 20); do
             sleep 3
