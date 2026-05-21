@@ -31,3 +31,63 @@ export async function GET() {
 
   return NextResponse.json(result.body, { status: result.status });
 }
+
+export async function PATCH(request: Request) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Unauthorized",
+      },
+      { status: 401 },
+    );
+  }
+
+  const body = await request.text();
+
+  const result = await coreFetch("/api/v1/users/me", {
+    method: "PATCH",
+    body,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return NextResponse.json(result.body, { status: result.status });
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Unauthorized",
+      },
+      { status: 401 },
+    );
+  }
+
+  const result = await coreFetch("/api/v1/users/me", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const response = NextResponse.json(result.body, { status: result.status });
+
+  if (result.body.success) {
+    response.cookies.set(AUTH_COOKIE_NAME, "", {
+      path: "/",
+      maxAge: 0,
+    });
+  }
+
+  return response;
+}

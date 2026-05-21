@@ -2,9 +2,12 @@
 # Based on official Docker + Next.js best practices.
 #
 # Build: docker build --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t yomu-frontend .
-# Run:   docker run -p 3000:3000 -e CORE_API_BASE_URL=http://host:8080 yomu-frontend
+# Run:   docker run -p 3000:3000 -e NEXT_PUBLIC_YOMU_API_BASE_URL=http://host:8081 -e NEXT_PUBLIC_RUST_ENGINE_BASE_URL=http://host:8080 yomu-frontend
 
 ARG NODE_VERSION=24-slim
+ARG NEXT_PUBLIC_YOMU_API_BASE_URL
+ARG NEXT_PUBLIC_RUST_ENGINE_BASE_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 # ============================================
 # Stage 1: Dependencies
@@ -26,11 +29,18 @@ FROM node:${NODE_VERSION} AS builder
 
 WORKDIR /app
 
+ARG NEXT_PUBLIC_YOMU_API_BASE_URL
+ARG NEXT_PUBLIC_RUST_ENGINE_BASE_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
 # Copy installed deps from previous stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_YOMU_API_BASE_URL=${NEXT_PUBLIC_YOMU_API_BASE_URL}
+ENV NEXT_PUBLIC_RUST_ENGINE_BASE_URL=${NEXT_PUBLIC_RUST_ENGINE_BASE_URL}
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 
 # Ensure TypeScript is available for next.config.ts transpilation
 RUN npm install --no-save typescript
@@ -54,10 +64,17 @@ FROM node:${NODE_VERSION} AS runner
 
 WORKDIR /app
 
+ARG NEXT_PUBLIC_YOMU_API_BASE_URL
+ARG NEXT_PUBLIC_RUST_ENGINE_BASE_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_YOMU_API_BASE_URL=${NEXT_PUBLIC_YOMU_API_BASE_URL}
+ENV NEXT_PUBLIC_RUST_ENGINE_BASE_URL=${NEXT_PUBLIC_RUST_ENGINE_BASE_URL}
+ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \

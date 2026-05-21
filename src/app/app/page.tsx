@@ -2,7 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpenText, LogOut, MessageSquareText, Trophy } from "lucide-react";
+import {
+  BookOpenText,
+  CheckCircle2,
+  Crown,
+  LogOut,
+  Medal,
+  MessageSquareText,
+  Shield,
+  Trophy,
+  UserRound,
+} from "lucide-react";
 
 import { DashboardReadingPreview } from "@/src/components/bacaankuis/DashboardReadingPreview";
 import { DashboardForumPreview } from "@/src/components/forum/DashboardForumPreview";
@@ -26,6 +36,51 @@ const quickStats = [
     title: "Progress belajar",
     description: "Flow baca, jawab, dan lihat hasil akhir sekarang sudah nyambung ke backend grading.",
     icon: Trophy,
+  },
+];
+
+const moduleLinks = [
+  {
+    title: "Bacaan & Kuis",
+    description: "Pilih artikel, baca sampai tuntas, lalu kerjakan kuis sekali submit.",
+    href: "/bacaankuis",
+    icon: BookOpenText,
+    tone: "bg-emerald-100 text-emerald-700",
+  },
+  {
+    title: "Clan",
+    description: "Cek tier, buat clan, atau bergabung memakai ID clan dari teman.",
+    href: "/clans",
+    icon: Shield,
+    tone: "bg-sky-100 text-sky-700",
+  },
+  {
+    title: "Leaderboard",
+    description: "Bandingkan performa clan per tier dari Rust Engine.",
+    href: "/leaderboard",
+    icon: Trophy,
+    tone: "bg-amber-100 text-amber-700",
+  },
+  {
+    title: "Achievements",
+    description: "Status integrasi achievement dan rancangan tampilan profil.",
+    href: "/achievements",
+    icon: Medal,
+    tone: "bg-violet-100 text-violet-700",
+  },
+  {
+    title: "Daily Missions",
+    description: "Status misi harian, progress, dan reward yang menunggu endpoint aktif.",
+    href: "/missions",
+    icon: CheckCircle2,
+    tone: "bg-teal-100 text-teal-700",
+  },
+  {
+    title: "Profil Akun",
+    description: "Ubah username, display name, identifier login, dan password.",
+    href: "/profile",
+    icon: UserRound,
+    tone: "bg-zinc-100 text-zinc-800",
   },
 ];
 
@@ -108,6 +163,9 @@ export default function AppPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
+                <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
+                  <a href="/bacaankuis">Mulai baca</a>
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
@@ -140,6 +198,43 @@ export default function AppPage() {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-black/5 bg-white/82 px-6 py-7 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.28)] lg:px-8 lg:py-8">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-medium text-emerald-800">Ruang kerja pelajar</p>
+              <h2 className="mt-2 text-3xl font-semibold leading-tight text-zinc-950">Modul Yomu</h2>
+            </div>
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800">
+              <Crown className="size-3.5" />
+              Clan dan liga tersambung ke Rust Engine
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {moduleLinks.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="group rounded-[1.5rem] border border-black/5 bg-white p-5 transition-transform duration-300 hover:-translate-y-1"
+                >
+                  <div className={`flex size-11 items-center justify-center rounded-2xl ${item.tone}`}>
+                    <Icon className="size-5" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-zinc-950">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-600">{item.description}</p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-900">
+                    Buka modul
+                    <Trophy className="size-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </a>
+              );
+            })}
           </div>
         </section>
 

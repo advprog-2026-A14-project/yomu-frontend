@@ -159,6 +159,87 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout() {
+  try {
+    await apiFetch<never>("/api/v1/auth/logout", {
+      method: "POST",
+    });
+  } catch {
+    // Local session cleanup should still happen when the server logout route is unavailable.
+  }
+
   clearAuthSession();
   return { success: true, message: "Logout berhasil" } satisfies ApiResponse<never>;
+}
+
+export async function updateProfile(payload: { username?: string; display_name?: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<User>("/api/v1/users/me", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+  if (response.success && "data" in response && response.data && canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  }
+
+  return response;
+}
+
+export async function updatePassword(payload: { current_password?: string; new_password: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  return apiFetch<never>("/api/v1/users/me/password", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateLoginIdentifiers(payload: { email?: string; phone_number?: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<User>("/api/v1/users/me/login-identifiers", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+  if (response.success && "data" in response && response.data && canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  }
+
+  return response;
+}
+
+export async function deleteAccount() {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<never>("/api/v1/users/me", {
+    method: "DELETE",
+    token,
+  });
+
+  if (response.success) {
+    clearAuthSession();
+  }
+
+  return response;
 }

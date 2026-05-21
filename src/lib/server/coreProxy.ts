@@ -53,13 +53,13 @@ function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
 }
 
 export async function coreFetch<T>(path: string, init: RequestInit = {}): Promise<CoreFetchResult<T>> {
-  const baseUrl = process.env.CORE_API_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_YOMU_API_BASE_URL;
 
   if (!baseUrl) {
     return {
       ok: false,
       status: 500,
-      body: { success: false, message: "CORE_API_BASE_URL belum diatur" },
+      body: { success: false, message: "NEXT_PUBLIC_YOMU_API_BASE_URL belum diatur" },
     };
   }
 

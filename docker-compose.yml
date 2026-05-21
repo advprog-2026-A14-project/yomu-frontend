@@ -4,6 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_YOMU_API_BASE_URL: ${NEXT_PUBLIC_YOMU_API_BASE_URL:-http://host.docker.internal:8081}
+        NEXT_PUBLIC_RUST_ENGINE_BASE_URL: ${NEXT_PUBLIC_RUST_ENGINE_BASE_URL:-http://host.docker.internal:8080}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     container_name: yomu-frontend
     restart: unless-stopped
     ports:
@@ -12,8 +16,9 @@ services:
       NODE_ENV: production
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
-      CORE_API_BASE_URL: ${CORE_API_BASE_URL:-http://host.docker.internal:8080}
-      RUST_ENGINE_URL: ${RUST_ENGINE_URL:-http://host.docker.internal:8081}
+      NEXT_PUBLIC_YOMU_API_BASE_URL: ${NEXT_PUBLIC_YOMU_API_BASE_URL:-http://host.docker.internal:8081}
+      NEXT_PUBLIC_RUST_ENGINE_BASE_URL: ${NEXT_PUBLIC_RUST_ENGINE_BASE_URL:-http://host.docker.internal:8080}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
