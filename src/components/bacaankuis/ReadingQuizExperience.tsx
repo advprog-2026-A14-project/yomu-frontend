@@ -3,94 +3,188 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpenText, CheckCircle2, Clock3, Send } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  BookOpenText,
+  CheckCircle2,
+  Clock3,
+  LockKeyhole,
+  MessageCircle,
+} from "lucide-react";
 
+import { ArticleAdminPanel } from "@/src/components/bacaankuis/ArticleAdminPanel";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group";
-import { submitQuiz, type ReadingArticle } from "@/src/lib/api/reading";
+import { submitQuizWithStatus } from "@/src/lib/api/bacaankuis";
+import type { Article, QuizQuestion, QuizResultSnapshot } from "@/src/lib/bacaankuis";
+import {
+  buildQuizResultStorageKey,
+  categoryAccent,
+  estimateReadTime,
+  parseQuizOptions,
+  splitArticleParagraphs,
+} from "@/src/lib/bacaankuis";
 import { cn } from "@/src/lib/utils";
 
 type Props = {
-  article: ReadingArticle;
-  notice?: string;
+  article: Article;
+  questions: QuizQuestion[];
+  isAdmin?: boolean;
+  adminName?: string | null;
+  quizMessage?: string | null;
 };
 
-export function ReadingQuizExperience({ article, notice }: Props) {
+function readCachedResult(articleId: string): QuizResultSnapshot | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(buildQuizResultStorageKey(articleId));
+
+    if (!rawValue) {
+      return null;
+    }
+
+    const parsed = JSON.parse(rawValue) as Partial<QuizResultSnapshot>;
+
+    if (
+      parsed &&
+      parsed.article_id === articleId &&
+      typeof parsed.score === "number" &&
+      typeof parsed.accuracy === "number" &&
+      typeof parsed.correct_count === "number" &&
+      typeof parsed.total_questions === "number"
+    ) {
+      return parsed as QuizResultSnapshot;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+export function ReadingQuizExperience({
+  article,
+  questions,
+  isAdmin,
+  adminName,
+  quizMessage,
+}: Props) {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cachedResult, setCachedResult] = useState<QuizResultSnapshot | null>(() => readCachedResult(article.id));
 
-  const currentQuestion = article.questions[currentQuestionIndex];
+  const currentQuestion = questions[currentQuestionIndex] ?? null;
+  const paragraphs = splitArticleParagraphs(article.content);
+  const quizUnavailable = questions.length === 0;
   const answeredCount = Object.keys(answers).length;
-  const completionValue =
-    article.questions.length > 0 ? Math.round((answeredCount / article.questions.length) * 100) : 0;
-  const selectedAnswer = currentQuestion ? (answers[currentQuestion.id] ?? "") : "";
-  const hasFinishedAll = answeredCount === article.questions.length;
-  const canScore = article.questions.length > 0 && article.questions.every((question) => question.answer);
+  const completionValue = questions.length === 0 ? 0 : Math.round((answeredCount / questions.length) * 100);
+  const selectedAnswer = currentQuestion ? answers[currentQuestion.id] ?? "" : "";
+  const hasFinishedAll = questions.length > 0 && answeredCount === questions.length;
 
   const answeredQuestionNumbers = useMemo(
     () =>
-      article.questions.reduce<number[]>((accumulator, question, index) => {
+      questions.reduce<number[]>((accumulator, question, index) => {
         if (answers[question.id]) {
           accumulator.push(index + 1);
         }
 
         return accumulator;
       }, []),
-    [answers, article.questions],
+    [answers, questions],
   );
 
-  const submitCurrentQuiz = async () => {
-    setSubmitError(null);
+  const pushToResultPage = (result: QuizResultSnapshot, repeat = false) => {
+    const params = new URLSearchParams({
+      score: String(result.score),
+      accuracy: String(result.accuracy),
+      correct: String(result.correct_count),
+      total: String(result.total_questions),
+    });
 
-    if (!canScore) {
+    if (repeat) {
+      params.set("repeat", "1");
+    }
+
+    router.push(`/bacaankuis/${article.id}/hasil?${params.toString()}`);
+  };
+
+  const finishSession = async () => {
+    if (!hasFinishedAll) {
+      setSubmitError("Semua soal perlu dijawab sebelum dikirim.");
+      return;
+    }
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    const result = await submitQuizWithStatus(article.id, {
+      answers: questions.map((question) => ({
+        quiz_id: question.id,
+        answer: answers[question.id],
+      })),
+    });
+
+    setIsSubmitting(false);
+
+    const { status, response } = result;
+
+    if (status === 409 && "data" in response && response.data) {
+      const snapshot: QuizResultSnapshot = {
+        article_id: article.id,
+        score: response.data.score,
+        accuracy: response.data.accuracy,
+        correct_count: response.data.correct_count,
+        total_questions: response.data.total_questions,
+      };
+
+      window.localStorage.setItem(buildQuizResultStorageKey(article.id), JSON.stringify(snapshot));
+      setCachedResult(snapshot);
+      pushToResultPage(snapshot, true);
+      return;
+    }
+
+    if (!response.success) {
       setSubmitError(
-        "Backend quiz belum mengirim jawaban benar, jadi frontend belum bisa menghitung score/accuracy dengan aman.",
+        status === 409 && cachedResult
+          ? "Kuis untuk artikel ini sudah pernah kamu selesaikan. Hasil terakhir bisa dibuka dari tombol di bawah."
+          : status === 409
+            ? "Kuis untuk artikel ini sudah pernah kamu selesaikan."
+            : response.message,
       );
       return;
     }
 
-    const correctCount = article.questions.filter(
-      (question) => answers[question.id] === question.answer,
-    ).length;
-    const score = Math.round((correctCount / article.questions.length) * 100);
-    const accuracy = Number(((correctCount / article.questions.length) * 100).toFixed(1));
-
-    if (article.source === "api") {
-      setSubmitting(true);
-      const response = await submitQuiz(article.id, score, accuracy);
-      setSubmitting(false);
-
-      if (!response.success) {
-        setSubmitError(response.message);
-        return;
-      }
+    if (!("data" in response) || !response.data) {
+      setSubmitError("Jawaban berhasil dikirim, tetapi hasil nilai belum dikembalikan oleh backend.");
+      return;
     }
 
-    router.push(
-      `/bacaankuis/${article.id}/hasil?score=${score}&accuracy=${accuracy}&answered=${answeredCount}`,
-    );
+    const snapshot: QuizResultSnapshot = {
+      article_id: article.id,
+      score: response.data.score,
+      accuracy: response.data.accuracy,
+      correct_count: response.data.correct_count,
+      total_questions: response.data.total_questions,
+    };
+
+    window.localStorage.setItem(buildQuizResultStorageKey(article.id), JSON.stringify(snapshot));
+    setCachedResult(snapshot);
+    pushToResultPage(snapshot);
   };
 
-  if (!currentQuestion) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-5 py-8">
-        <Link href="/bacaankuis" className="inline-flex items-center gap-2 text-sm text-zinc-500">
-          <ArrowLeft className="size-4" />
-          Kembali ke katalog
-        </Link>
-        <h1 className="mt-6 text-2xl font-semibold leading-tight">{article.title}</h1>
-        <p className="mt-3 text-sm leading-6 text-zinc-600">
-          {notice ?? "Artikel ditemukan, tetapi kuis belum tersedia dari backend."}
-        </p>
-      </main>
-    );
-  }
+  const quizNotice = quizMessage ?? (quizUnavailable ? "Soal belum tersedia untuk artikel ini." : null);
+  const hasRepeatMessage = quizMessage?.toLowerCase().includes("sudah");
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f5f0e6_0%,_#f8f8f6_24%,_#edf4ef_100%)] text-zinc-900">
@@ -108,50 +202,69 @@ export function ReadingQuizExperience({ article, notice }: Props) {
               </div>
 
               <div className="space-y-3">
-                <Badge className="max-w-full whitespace-normal bg-emerald-700 px-3 py-1 text-white">{article.difficulty}</Badge>
-                <h1 className="max-w-3xl text-3xl leading-tight font-semibold text-pretty md:text-[2.75rem]">
+                <Badge className="bg-emerald-700 px-3 py-1 text-white">{article.category}</Badge>
+                <h1 className="max-w-3xl text-3xl leading-tight font-semibold text-balance md:text-5xl">
                   {article.title}
                 </h1>
-                <p className="max-w-3xl text-base leading-7 text-zinc-600">{article.summary}</p>
-                {notice ? <p className="max-w-3xl text-sm leading-6 text-zinc-500">{notice}</p> : null}
+                <p className="max-w-3xl text-base leading-7 text-zinc-600">
+                  Ruang baca ini terhubung ke backend Java asli. Admin bisa mengelola soal langsung dari artikel ini tanpa keluar konteks.
+                </p>
               </div>
             </div>
 
             <div className="grid min-w-0 gap-3 md:grid-cols-3 lg:w-[28rem]">
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Waktu baca</p>
-                  <p className="text-lg font-semibold">{article.readTime}</p>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Waktu baca</p>
+                  <p className="text-lg font-semibold">{estimateReadTime(article.content)}</p>
                 </CardContent>
               </Card>
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Jumlah soal</p>
-                  <p className="text-lg font-semibold">{article.questions.length}</p>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Jumlah soal</p>
+                  <p className="text-lg font-semibold">{questions.length}</p>
                 </CardContent>
               </Card>
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Aturan</p>
-                  <p className="text-lg font-semibold">One take</p>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Mode</p>
+                  <p className="text-lg font-semibold">{isAdmin ? "Admin view" : "Learner view"}</p>
                 </CardContent>
               </Card>
             </div>
           </div>
+
+          <div className="mt-5 flex justify-end">
+            <Button asChild variant="outline" className="rounded-full border-zinc-200 bg-white/75">
+              <Link href={`/forums/${article.id}`}>
+                <MessageCircle className="size-4" />
+                Diskusi
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.82fr)]">
+        {isAdmin && adminName ? (
+          <ArticleAdminPanel
+            articleId={article.id}
+            articleTitle={article.title}
+            adminName={adminName}
+            quizzes={questions}
+          />
+        ) : null}
+
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.82fr]">
           <Card className="overflow-hidden border-black/5 bg-white/82">
-            <div className={`min-h-[9rem] bg-gradient-to-r ${article.accent} px-5 py-5 md:px-8`}>
-              <div className="flex min-h-[6.5rem] flex-col justify-between gap-4">
-                <div className="flex min-w-0 items-start gap-3 text-zinc-800">
+            <div className={`h-36 bg-gradient-to-r ${categoryAccent(article.category)} px-6 py-5 md:px-8`}>
+              <div className="flex h-full flex-col justify-between">
+                <div className="flex items-center gap-3 text-zinc-800">
                   <div className="rounded-2xl bg-white/65 p-3">
                     <BookOpenText className="size-5" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">Ruang Baca</p>
+                  <div>
+                    <p className="text-sm font-medium">Ruang baca</p>
                     <p className="text-sm text-zinc-700/80">
-                      Fokuskan tampilan bacaan agar tetap nyaman dibaca di desktop maupun mobile.
+                      Fokuskan bacaan dulu, lalu jawab soal di panel samping tanpa kehilangan konteks.
                     </p>
                   </div>
                 </div>
@@ -161,16 +274,16 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                     {article.category}
                   </Badge>
                   <Badge variant="outline" className="border-zinc-900/10 bg-white/60 text-zinc-800">
-                    {article.completionRate}% completion
+                    {questions.length} soal tersedia
                   </Badge>
                 </div>
               </div>
             </div>
 
             <CardContent className="space-y-6 p-6 md:p-8">
-              <div className="rounded-2xl bg-[#fffdf7] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-black/5 md:p-7">
-                <div className="mx-auto max-w-3xl space-y-5 font-serif text-base leading-8 text-zinc-700 md:text-[1.05rem]">
-                  {article.paragraphs.map((paragraph) => (
+              <div className="rounded-[1.75rem] bg-[#fffdf7] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-black/5 md:p-8">
+                <div className="mx-auto max-w-3xl space-y-5 font-serif text-[1.05rem] leading-8 text-zinc-700">
+                  {paragraphs.map((paragraph) => (
                     <p key={paragraph}>{paragraph}</p>
                   ))}
                 </div>
@@ -183,8 +296,7 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                     <p className="text-sm font-medium text-emerald-900">Tips membaca</p>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-emerald-900/80">
-                    Baca satu paragraf penuh dulu, lalu cocokan pertanyaan dengan ide utama, bukan hanya kata
-                    yang tampak mirip.
+                    Baca satu paragraf penuh dulu, lalu cocokkan pertanyaan dengan ide utama, bukan hanya kata yang tampak mirip.
                   </p>
                 </div>
 
@@ -194,7 +306,7 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                     <p className="text-sm font-medium text-sky-900">Catatan integrasi</p>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-sky-900/80">
-                    UI ini sudah meniru pola backend Java: submit akhir cukup menghasilkan score dan accuracy.
+                    Submit kuis sekarang mengirim jawaban user ke backend, lalu backend yang menghitung nilai akhir.
                   </p>
                 </div>
               </div>
@@ -207,13 +319,29 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm text-zinc-500">
                     <span>Progress pengerjaan</span>
-                    <span>{answeredCount}/{article.questions.length} terisi</span>
+                    <span>{answeredCount}/{questions.length} terisi</span>
                   </div>
                   <Progress value={completionValue} className="h-2.5 bg-zinc-100" />
                 </div>
 
+                {quizNotice ? (
+                  <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
+                    <div className="flex items-start gap-3">
+                      {quizMessage?.toLowerCase().includes("login") || quizMessage === "Unauthorized" ? (
+                        <LockKeyhole className="mt-0.5 size-5 text-amber-700" />
+                      ) : (
+                        <AlertTriangle className="mt-0.5 size-5 text-amber-700" />
+                      )}
+                      <div className="space-y-2">
+                        <p className="font-medium text-amber-950">Kuis belum bisa dibuka</p>
+                        <p className="text-sm leading-6 text-amber-900/80">{quizNotice}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2">
-                  {article.questions.map((question, index) => {
+                  {questions.map((question, index) => {
                     const isCurrent = index === currentQuestionIndex;
                     const isAnswered = Boolean(answers[question.id]);
 
@@ -237,54 +365,72 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                   })}
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-xs tracking-wide text-zinc-500 uppercase">
-                      Soal {currentQuestionIndex + 1} dari {article.questions.length}
-                    </p>
-                    <h2 className="text-lg leading-7 font-semibold text-zinc-950 sm:text-xl sm:leading-8">
-                      {currentQuestion.question}
-                    </h2>
-                  </div>
+                {currentQuestion ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">
+                        Soal {currentQuestionIndex + 1} dari {questions.length}
+                      </p>
+                      <h2 className="text-xl leading-8 font-semibold text-zinc-950">{currentQuestion.question}</h2>
+                    </div>
 
-                  <RadioGroup
-                    value={selectedAnswer}
-                    onValueChange={(value) =>
-                      setAnswers((current) => ({
-                        ...current,
-                        [currentQuestion.id]: value,
-                      }))
-                    }
-                    className="space-y-3"
-                  >
-                    {currentQuestion.options.map((option) => (
-                      <label
-                        key={option}
-                        className={cn(
-                          "flex min-w-0 cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
-                          selectedAnswer === option
-                            ? "border-zinc-950 bg-zinc-950 text-white"
-                            : "border-zinc-200 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300",
-                        )}
-                      >
-                        <RadioGroupItem value={option} className="mt-1 border-current text-current" />
-                        <span className="text-sm leading-6">{option}</span>
-                      </label>
-                    ))}
-                  </RadioGroup>
-                </div>
+                    <RadioGroup
+                      value={selectedAnswer}
+                      onValueChange={(value) =>
+                        setAnswers((current) => ({
+                          ...current,
+                          [currentQuestion.id]: value,
+                        }))
+                      }
+                      className="space-y-3"
+                    >
+                      {parseQuizOptions(currentQuestion.options).map((option) => (
+                        <label
+                          key={option}
+                          className={cn(
+                            "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition",
+                            selectedAnswer === option
+                              ? "border-zinc-950 bg-zinc-950 text-white"
+                              : "border-zinc-200 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300",
+                          )}
+                        >
+                          <RadioGroupItem value={option} className="mt-1 border-current text-current" />
+                          <span className="text-sm leading-6">{option}</span>
+                        </label>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                ) : null}
 
                 <div className="grid gap-3 rounded-3xl bg-zinc-50 p-4">
                   <p className="text-xs tracking-wide text-zinc-500 uppercase">Checkpoint</p>
                   <p className="text-sm leading-6 text-zinc-700">
-                    Soal yang sudah terjawab:{" "}
-                    {answeredQuestionNumbers.length > 0 ? answeredQuestionNumbers.join(", ") : "belum ada"}
+                    Soal yang sudah terjawab: {answeredQuestionNumbers.length > 0 ? answeredQuestionNumbers.join(", ") : "belum ada"}
                   </p>
                   <p className="text-sm leading-6 text-zinc-500">
-                    Halaman hasil akan menampilkan score dan accuracy seperti payload submit backend.
+                    Nilai akhir akan dihitung di backend setelah semua jawaban dikirim.
                   </p>
-                  {submitError ? <p className="text-sm leading-6 text-red-600">{submitError}</p> : null}
+                  {hasRepeatMessage && cachedResult ? (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                      <p className="text-sm leading-6 text-emerald-900">
+                        Hasil terakhir tersimpan di browser ini: score {cachedResult.score}, accuracy {cachedResult.accuracy}%.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
+
+                {submitError ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{submitError}</p> : null}
+
+                {hasRepeatMessage && cachedResult ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-full border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                    onClick={() => pushToResultPage(cachedResult, true)}
+                  >
+                    Lihat hasil terakhir
+                  </Button>
+                ) : null}
 
                 <div className="flex flex-col gap-3 border-t border-zinc-100 pt-4 sm:flex-row">
                   <Button
@@ -292,19 +438,17 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                     variant="outline"
                     className="h-auto min-h-9 flex-1 whitespace-normal rounded-full px-4 py-2 text-center"
                     onClick={() => setCurrentQuestionIndex((index) => Math.max(0, index - 1))}
-                    disabled={currentQuestionIndex === 0}
+                    disabled={quizUnavailable || currentQuestionIndex === 0}
                   >
                     <ArrowLeft className="size-4" />
                     Sebelumnya
                   </Button>
 
-                  {currentQuestionIndex < article.questions.length - 1 ? (
+                  {currentQuestionIndex < questions.length - 1 ? (
                     <Button
                       type="button"
-                      className="h-auto min-h-9 flex-1 whitespace-normal rounded-full bg-zinc-950 px-4 py-2 text-center text-white hover:bg-zinc-800"
-                      onClick={() =>
-                        setCurrentQuestionIndex((index) => Math.min(article.questions.length - 1, index + 1))
-                      }
+                      className="flex-1 rounded-full bg-zinc-950 text-white hover:bg-zinc-800"
+                      onClick={() => setCurrentQuestionIndex((index) => Math.min(questions.length - 1, index + 1))}
                     >
                       Berikutnya
                       <ArrowRight className="size-4" />
@@ -312,12 +456,12 @@ export function ReadingQuizExperience({ article, notice }: Props) {
                   ) : (
                     <Button
                       type="button"
-                      className="h-auto min-h-9 flex-1 whitespace-normal rounded-full bg-emerald-700 px-4 py-2 text-center text-white hover:bg-emerald-800"
-                      disabled={!hasFinishedAll || submitting}
-                      onClick={submitCurrentQuiz}
+                      className="flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
+                      disabled={quizUnavailable || !hasFinishedAll || isSubmitting}
+                      onClick={finishSession}
                     >
-                      {submitting ? "Mengirim..." : article.source === "api" ? "Submit ke backend" : "Submit mockup"}
-                      <Send className="size-4" />
+                      {isSubmitting ? "Mengirim jawaban..." : "Kirim jawaban"}
+                      <CheckCircle2 className="size-4" />
                     </Button>
                   )}
                 </div>
@@ -326,12 +470,16 @@ export function ReadingQuizExperience({ article, notice }: Props) {
 
             <Card className="border-black/5 bg-zinc-950 text-white">
               <CardContent className="space-y-3 p-6">
-                <p className="text-xs tracking-wide text-zinc-400 uppercase">Rule backend</p>
-                <p className="text-lg font-semibold">Kuis ini diasumsikan satu kali submit</p>
+                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Rule backend</p>
+                <p className="text-lg font-semibold">Submit final dilakukan sekali per artikel</p>
                 <p className="text-sm leading-6 text-zinc-400">
-                  Karena service Java menyimpan attempt per artikel dan menolak submit ulang, desain CTA dibuat
-                  final dan tegas, bukan draftable berkali-kali.
+                  Setelah jawaban dikirim, backend akan menghitung score dan accuracy, menyimpan attempt user, lalu menyinkronkan hasil final ke Rust.
                 </p>
+                <div className="pt-2">
+                  <Link href={`/forums/${article.id}`} className="text-sm text-emerald-300 hover:text-emerald-200">
+                    Lanjut ke diskusi artikel
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </div>

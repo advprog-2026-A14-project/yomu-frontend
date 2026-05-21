@@ -1,142 +1,112 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
-
-import { me, type User } from "@/src/lib/api/auth";
-import { createClan, getUserTier } from "@/src/lib/api/league";
-import { Button } from "@/src/components/ui/button";
-import { Card, CardContent } from "@/src/components/ui/card";
-import { Input } from "@/src/components/ui/input";
-
-type TierInfo = {
-  user_id: string;
-  clan_id: string | null;
-  clan_name: string | null;
-  tier: string | null;
-};
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUserId, getStoredAuthToken } from "@/src/lib/api/auth";
+import { getUserTier } from "@/src/lib/api/clan";
+import { toast } from "sonner";
+import ClanHomeCard from "@/src/features/league/components/ClanHomeCard";
+import CreateClanForm from "@/src/features/league/components/CreateClanForm";
+import type { UserTierInfo } from "@/src/types/clan";
 
 export default function ClansPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [tierInfo, setTierInfo] = useState<TierInfo | null>(null);
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("Memuat session...");
-  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [clanInfo, setClanInfo] = useState<UserTierInfo | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+
+    const token = getStoredAuthToken();
+    if (!token) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    const uid = await getCurrentUserId();
+    if (!uid) {
+      router.replace("/auth/login");
+      return;
+    }
+    setUserId(uid);
+
+    const res = await getUserTier(uid);
+    if (res.success && "data" in res && res.data) {
+      setClanInfo(res.data);
+    } else if (!res.success) {
+      if (res.message?.includes("not found") || res.message?.includes("belum")) {
+        setClanInfo({
+          user_id: uid,
+          clan_id: null,
+          clan_name: null,
+          tier: null,
+        });
+      } else {
+        setError(res.message || "Gagal memuat data klan");
+        toast.error(res.message || "Gagal memuat data klan");
+      }
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
-    let active = true;
-
-    const load = async () => {
-      const session = await me();
-
-      if (!active) {
-        return;
-      }
-
-      if (!session.response.success || !("data" in session.response) || !session.response.data) {
-        setMessage(session.response.message);
-        return;
-      }
-
-      setUser(session.response.data);
-      const tierResponse = await getUserTier(session.response.data.user_id);
-
-      if (!active) {
-        return;
-      }
-
-      if (tierResponse.success && "data" in tierResponse && tierResponse.data) {
-        setTierInfo(tierResponse.data);
-        setMessage("Data tier aktif dari Rust Engine.");
-        return;
-      }
-
-      setMessage(tierResponse.message);
-    };
-
     load();
-
-    return () => {
-      active = false;
-    };
   }, []);
 
-  const onCreateClan = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  if (loading) {
+    return <ClansPageSkeleton />;
+  }
 
-    if (!user || !name.trim()) {
-      return;
-    }
-
-    setSubmitting(true);
-    const response = await createClan(name.trim(), user.user_id);
-    setSubmitting(false);
-
-    if (!response.success) {
-      setMessage(response.message);
-      return;
-    }
-
-    setMessage("Clan berhasil dibuat. Refresh data tier setelah Rust selesai memproses membership.");
-    setName("");
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <p className="text-lg text-destructive">{error}</p>
+        <button
+          onClick={load}
+          className="mt-4 rounded bg-primary px-4 py-2 text-primary-foreground"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 sm:px-5 md:px-8">
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-        <div className="min-w-0">
-          <Link href="/app" className="text-sm text-zinc-500 hover:text-zinc-900">
-            Kembali ke hub
-          </Link>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight">Clan</h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-600">{message}</p>
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
+      <div>
+        <h1 className="text-3xl font-bold">Klan</h1>
+        <p className="mt-1 text-muted-foreground">
+          Kelola klan dan bergabung dengan komunitas
+        </p>
+      </div>
+
+      {clanInfo?.clan_id ? (
+        <ClanHomeCard clanInfo={clanInfo} />
+      ) : (
+        <div className="space-y-6">
+          <div className="rounded-lg border border-dashed p-8 text-center">
+            <p className="text-lg text-muted-foreground">
+              Kamu belum tergabung dalam klan mana pun.
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Buat klan baru atau minta bergabung dengan klan yang sudah ada.
+            </p>
+          </div>
+          {userId && <CreateClanForm userId={userId} onSuccess={load} />}
         </div>
+      )}
+    </div>
+  );
+}
 
-        <Card className="border-zinc-200 bg-white">
-          <CardContent className="grid min-w-0 gap-4 p-5 md:grid-cols-3">
-            <div className="min-w-0">
-              <p className="text-xs text-zinc-500 uppercase">User</p>
-              <p className="mt-1 font-semibold">{user?.display_name ?? "-"}</p>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-zinc-500 uppercase">Clan</p>
-              <p className="mt-1 font-semibold">{tierInfo?.clan_name ?? "Belum ada clan"}</p>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-zinc-500 uppercase">Tier</p>
-              <p className="mt-1 font-semibold">{tierInfo?.tier ?? "-"}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-zinc-200 bg-white">
-          <CardContent className="space-y-4 p-5">
-            <div>
-              <h2 className="font-semibold">Buat Clan</h2>
-              <p className="mt-1 text-sm leading-6 text-zinc-600">
-                Form ini memanggil Rust `POST /api/v1/clans` langsung dari browser dan memakai `user_id` dari session.
-              </p>
-            </div>
-            <form className="flex min-w-0 flex-col gap-3 sm:flex-row" onSubmit={onCreateClan}>
-              <Input
-                className="min-w-0"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Nama clan"
-                disabled={!user || submitting}
-                required
-              />
-              <Button
-                type="submit"
-                className="h-auto min-h-9 whitespace-normal px-4 py-2 text-center"
-                disabled={!user || submitting}
-              >
-                {submitting ? "Membuat..." : "Buat Clan"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </section>
-    </main>
+function ClansPageSkeleton() {
+  return (
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-8">
+      <div className="h-9 w-24 animate-pulse rounded bg-muted" />
+      <div className="h-48 animate-pulse rounded-lg bg-muted" />
+    </div>
   );
 }
