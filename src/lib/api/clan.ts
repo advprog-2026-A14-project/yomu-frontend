@@ -52,13 +52,12 @@ export async function createJoinRequest(payload: CreateJoinRequestPayload) {
 }
 
 export async function getPendingRequests(clanId: string, callerId: string) {
-  const payload: ApproveRejectPayload = { caller_id: callerId };
+  const query = `?caller_id=${encodeURIComponent(callerId)}`;
   return apiFetchWithStatus<JoinRequest[]>(
-    `${RUST_API}/api/v1/clans/${clanId}/join-requests`,
+    `${RUST_API}/api/v1/clans/${clanId}/join-requests${query}`,
     {
       method: "GET",
       headers: getAuthHeaders(),
-      body: JSON.stringify(payload),
     },
   );
 }
