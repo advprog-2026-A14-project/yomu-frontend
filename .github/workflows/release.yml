@@ -68,6 +68,10 @@ jobs:
             BUILD_DATE=${{ steps.meta.outputs.created }}
             VERSION=${{ steps.meta.outputs.version }}
             VCS_REF=${{ github.sha }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            NEXT_PUBLIC_YOMU_API_BASE_URL=${{ secrets.YOMU_API_BASE_URL }}
+            NEXT_PUBLIC_RUST_ENGINE_BASE_URL=${{ secrets.RUST_ENGINE_BASE_URL }}
+            NEXT_PUBLIC_RUST_ENGINE_URL=${{ secrets.RUST_ENGINE_BASE_URL }}
 
   lint-and-build:
     name: Lint & Build (CI)
