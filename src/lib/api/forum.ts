@@ -1,5 +1,5 @@
-import { getAccessToken } from "./auth";
 import { apiFetch } from "./fetcher";
+import { getAccessToken } from "./auth";
 
 export type ReactionType = "UPVOTE" | "DOWNVOTE" | "EMOJI";
 

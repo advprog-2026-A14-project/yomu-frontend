@@ -166,7 +166,7 @@ export function ReadingQuizExperience({
     }
 
     if (!("data" in response) || !response.data) {
-      setSubmitError("Jawaban berhasil dikirim, tetapi hasil nilai belum dikembalikan oleh backend.");
+      setSubmitError("Jawaban berhasil dikirim, tetapi ringkasan nilai belum bisa ditampilkan.");
       return;
     }
 
@@ -183,7 +183,7 @@ export function ReadingQuizExperience({
     pushToResultPage(snapshot);
   };
 
-  const quizNotice = quizMessage ?? (quizUnavailable ? "Soal belum tersedia untuk artikel ini." : null);
+  const quizNotice = quizMessage ?? (quizUnavailable ? "Kuis untuk artikel ini belum dibuka." : null);
   const hasRepeatMessage = quizMessage?.toLowerCase().includes("sudah");
 
   return (
@@ -207,7 +207,7 @@ export function ReadingQuizExperience({
                   {article.title}
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-zinc-600">
-                  Ruang baca ini terhubung ke backend Java asli. Admin bisa mengelola soal langsung dari artikel ini tanpa keluar konteks.
+                  Baca dengan tenang, lalu lanjutkan ke kuis dan diskusi tanpa keluar dari konteks artikel.
                 </p>
               </div>
             </div>
@@ -306,7 +306,7 @@ export function ReadingQuizExperience({
                     <p className="text-sm font-medium text-sky-900">Catatan integrasi</p>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-sky-900/80">
-                    Submit kuis sekarang mengirim jawaban user ke backend, lalu backend yang menghitung nilai akhir.
+                    Jawabanmu dinilai setelah semua soal dikirim.
                   </p>
                 </div>
               </div>
@@ -408,7 +408,7 @@ export function ReadingQuizExperience({
                     Soal yang sudah terjawab: {answeredQuestionNumbers.length > 0 ? answeredQuestionNumbers.join(", ") : "belum ada"}
                   </p>
                   <p className="text-sm leading-6 text-zinc-500">
-                    Nilai akhir akan dihitung di backend setelah semua jawaban dikirim.
+                    Nilai akhir akan muncul setelah semua jawaban dikirim.
                   </p>
                   {hasRepeatMessage && cachedResult ? (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
@@ -470,10 +470,10 @@ export function ReadingQuizExperience({
 
             <Card className="border-black/5 bg-zinc-950 text-white">
               <CardContent className="space-y-3 p-6">
-                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Rule backend</p>
-                <p className="text-lg font-semibold">Submit final dilakukan sekali per artikel</p>
+                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Aturan kuis</p>
+                <p className="text-lg font-semibold">Kuis hanya dikirim satu kali per artikel</p>
                 <p className="text-sm leading-6 text-zinc-400">
-                  Setelah jawaban dikirim, backend akan menghitung score dan accuracy, menyimpan attempt user, lalu menyinkronkan hasil final ke Rust.
+                  Setelah jawaban dikirim, hasil akhir akan tersimpan sebagai progres belajarmu.
                 </p>
                 <div className="pt-2">
                   <Link href={`/forums/${article.id}`} className="text-sm text-emerald-300 hover:text-emerald-200">

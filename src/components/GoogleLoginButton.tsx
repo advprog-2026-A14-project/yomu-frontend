@@ -12,7 +12,7 @@ export default function GoogleLoginButton() {
   const [loading, setLoading] = useState(false);
 
   if (!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-    return <p className="text-sm text-red-600">Google client id belum diatur.</p>;
+    return <p className="text-sm text-red-600">Login Google belum bisa digunakan saat ini.</p>;
   }
 
   return (
@@ -26,7 +26,7 @@ export default function GoogleLoginButton() {
           const idToken = credentialResponse.credential;
 
           if (!idToken) {
-            setError("Credential Google tidak tersedia");
+            setError("Login Google belum bisa digunakan saat ini");
             return;
           }
 

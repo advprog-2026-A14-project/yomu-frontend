@@ -81,9 +81,9 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                 <p className="max-w-2xl text-sm leading-7 text-zinc-700 md:text-base">
                   {hasResultMetrics
                     ? isRepeatResult
-                      ? "Kuis ini hanya bisa dikerjakan satu kali. Ini adalah hasil terakhir yang sudah tersimpan di backend."
-                      : "Jawabanmu sudah diproses oleh backend. Nilai di bawah ini adalah hasil final dari submit kuis untuk artikel ini."
-                    : "Submit kuis berhasil, tetapi frontend belum menerima paket nilai lengkap dari backend untuk sesi ini."}
+                      ? "Kuis ini hanya bisa dikerjakan satu kali. Ini adalah hasil terakhir yang tersimpan."
+                      : "Jawabanmu sudah dinilai. Nilai di bawah ini adalah hasil final untuk artikel ini."
+                    : "Jawaban berhasil dikirim, tetapi ringkasan nilai belum bisa ditampilkan untuk sesi ini."}
                 </p>
               </div>
 
@@ -135,8 +135,8 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                   </div>
                   <p className="text-sm leading-6 text-emerald-950/80">
                     {hasResultMetrics
-                      ? "Karena penilaian dilakukan di backend, hasil ini sudah konsisten dengan aturan one-attempt dan sinkronisasi hasil final ke service lain."
-                      : "Kalau ini masih muncul tanpa angka, berarti response submit yang sampai ke frontend belum membawa data score, accuracy, correct_count, dan total_questions secara lengkap."}
+                      ? "Hasil ini mengikuti aturan satu kali pengerjaan dan tercatat sebagai progres belajar artikel."
+                      : "Ringkasan nilai belum bisa ditampilkan. Kamu tetap bisa kembali ke artikel atau lanjut membaca bacaan lain."}
                   </p>
                 </CardContent>
               </Card>
@@ -146,7 +146,7 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
               <CardContent className="space-y-6 p-6">
                 <div className="space-y-2">
                   <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Kenapa flow ini lebih rapi</p>
-                  <h2 className="text-2xl font-semibold">Frontend fokus pada jawaban, backend fokus pada grading</h2>
+                  <h2 className="text-2xl font-semibold">Fokus pada pemahaman, bukan sekadar angka</h2>
                 </div>
 
                 <div className="grid gap-4">
@@ -156,7 +156,7 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                       <p className="font-medium">Artikel tetap jadi pusat pengalaman</p>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      User membaca dan menjawab dalam satu halaman, lalu melihat hasil final tanpa tebakan nilai di frontend.
+                      Kamu membaca dan menjawab dalam satu alur, lalu melihat hasil akhir setelah sesi selesai.
                     </p>
                   </div>
 
@@ -168,9 +168,9 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
                   </div>
 
                   <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-                    <p className="font-medium">Kontrak API lebih aman</p>
+                    <p className="font-medium">Jawaban benar tetap terjaga</p>
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
-                      Jawaban benar tetap dijaga di backend, sementara frontend cukup mengirim jawaban user dan menampilkan hasil akhir.
+                      Yomu hanya menampilkan hasil akhir, sehingga pengalaman kuis tetap adil untuk semua pelajar.
                     </p>
                   </div>
                 </div>

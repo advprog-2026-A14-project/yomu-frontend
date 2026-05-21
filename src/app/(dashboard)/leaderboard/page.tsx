@@ -8,13 +8,14 @@ import { getLeaderboard, type Leaderboard } from "@/src/lib/api/league";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { YomuShell } from "@/src/components/yomu/YomuShell";
 
 const tiers = ["Bronze", "Silver", "Gold", "Diamond"];
 
 export default function LeaderboardPage() {
   const [tier, setTier] = useState("Bronze");
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
-  const [message, setMessage] = useState("Memuat leaderboard dari Rust Engine...");
+  const [message, setMessage] = useState("Memuat papan peringkat clan...");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function LeaderboardPage() {
 
     const loadLeaderboard = async () => {
       setLoading(true);
-      setMessage("Memuat leaderboard dari Rust Engine...");
+      setMessage("Memuat papan peringkat clan...");
       const response = await getLeaderboard(tier);
 
       if (!active) {
@@ -33,7 +34,7 @@ export default function LeaderboardPage() {
 
       if (response.success && "data" in response && response.data) {
         setLeaderboard(response.data);
-        setMessage("Leaderboard aktif dari Rust Engine.");
+        setMessage("Papan peringkat siap ditampilkan.");
         return;
       }
 
@@ -51,8 +52,8 @@ export default function LeaderboardPage() {
   const topEntry = useMemo(() => leaderboard?.entries[0] ?? null, [leaderboard]);
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f4efe3_0%,_#f7f7f4_38%,_#eef4ef_100%)] px-5 py-8 text-zinc-950 md:px-8 lg:px-10">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <YomuShell mode="learner">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 md:px-8 lg:px-10">
         <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/82 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.35)]">
           <div className="grid gap-0 lg:grid-cols-[1.05fr_0.95fr]">
             <div className="space-y-5 border-b border-zinc-200/70 bg-[linear-gradient(135deg,_rgba(255,238,190,0.92),_rgba(231,246,239,0.84))] px-6 py-7 lg:border-r lg:border-b-0 lg:px-8 lg:py-8">
@@ -142,13 +143,12 @@ export default function LeaderboardPage() {
           {!loading && !leaderboard?.entries.length ? (
             <Card className="border-black/5 bg-white/86">
               <CardContent className="p-6 text-sm leading-6 text-zinc-600">
-                Belum ada data leaderboard yang bisa ditampilkan. Pastikan Rust Engine aktif,
-                JWT secret sama dengan Java, dan `NEXT_PUBLIC_RUST_ENGINE_BASE_URL` sudah benar.
+                Belum ada clan yang tampil pada tier ini. Coba pilih tier lain atau kembali lagi nanti.
               </CardContent>
             </Card>
           ) : null}
         </div>
       </section>
-    </main>
+    </YomuShell>
   );
 }

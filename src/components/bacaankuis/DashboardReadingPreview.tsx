@@ -60,7 +60,7 @@ export function DashboardReadingPreview() {
             </div>
             <div>
               <p className="text-sm font-medium text-zinc-900">Bacaan & Kuis</p>
-              <p className="text-sm text-zinc-600">Preview modul bacaankuis dari backend Java</p>
+              <p className="text-sm text-zinc-600">Rekomendasi bacaan untuk mulai belajar</p>
             </div>
           </div>
 

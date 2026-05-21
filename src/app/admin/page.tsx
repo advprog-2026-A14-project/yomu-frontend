@@ -10,53 +10,64 @@ import {
   LogOut,
   Medal,
   MessageSquareText,
-  RotateCcw,
+  RefreshCw,
   Shield,
 } from "lucide-react";
 
-import { AdminBacaanKuisManager } from "@/src/components/bacaankuis/AdminBacaanKuisManager";
 import { FailedSyncEventsPanel } from "@/src/components/admin/FailedSyncEventsPanel";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { ModuleCard } from "@/src/components/yomu/ModuleCard";
+import { YomuShell } from "@/src/components/yomu/YomuShell";
 import { logout, me, type User } from "@/src/lib/api/auth";
 
 const adminModules = [
   {
-    title: "Konten Bacaan & Kuis",
-    description: "Endpoint admin Java tersedia untuk create/delete artikel dan create/edit/delete kuis.",
-    status: "Aktif",
+    title: "Artikel & Kuis",
+    description: "Create/delete artikel, tambah banyak soal, edit soal, dan hapus soal.",
+    href: "/admin/articles",
     icon: BookOpenText,
+    tone: "bg-indigo-50 text-indigo-700",
+  },
+  {
+    title: "Kesehatan Sinkronisasi",
+    description: "Pantau proses pengiriman data dan pulihkan item yang perlu diproses ulang.",
+    href: "/admin/sync",
+    icon: RefreshCw,
+    tone: "bg-emerald-50 text-emerald-700",
   },
   {
     title: "Moderasi Forum",
-    description: "Admin dapat menghapus komentar melalui halaman forum artikel.",
-    status: "Aktif via forum",
+    description: "Kelola percakapan artikel dan jaga ruang diskusi tetap sehat.",
+    href: "/admin/forum",
     icon: MessageSquareText,
-  },
-  {
-    title: "Outbox Sync",
-    description: "Pantau dan retry event Java ke Rust yang gagal.",
-    status: "Aktif",
-    icon: RotateCcw,
+    status: "Parsial",
+    tone: "bg-sky-50 text-sky-700",
   },
   {
     title: "Achievement Admin",
-    description: "Create/edit/delete achievement belum punya endpoint siap konsumsi.",
-    status: "Menunggu backend",
+    description: "Pengelolaan pencapaian sedang disiapkan untuk rilis berikutnya.",
+    href: "/admin/achievements",
     icon: Medal,
+    status: "Segera hadir",
+    tone: "bg-violet-50 text-violet-700",
   },
   {
     title: "Daily Mission Admin",
-    description: "Create/edit/delete mission dan claim reward belum terpasang di router utama.",
-    status: "Menunggu backend",
+    description: "Pengelolaan misi harian sedang disiapkan untuk rilis berikutnya.",
+    href: "/admin/missions",
     icon: CalendarCheck2,
+    status: "Segera hadir",
+    tone: "bg-amber-50 text-amber-700",
   },
   {
     title: "End Season Liga",
-    description: "Trigger pergantian musim liga belum tersedia untuk frontend.",
-    status: "Menunggu backend",
+    description: "Penutupan musim liga akan dibuka saat aturan musim sudah siap.",
+    href: "/admin/season",
     icon: Shield,
+    status: "Segera hadir",
+    tone: "bg-zinc-100 text-zinc-800",
   },
 ];
 
@@ -111,7 +122,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return <main className="p-6">Memuat data admin...</main>;
+    return <main className="p-6">Memuat dashboard admin...</main>;
   }
 
   if (error) {
@@ -123,33 +134,26 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f4efe3_0%,_#f7f7f4_38%,_#eef4ef_100%)] px-5 py-8 text-zinc-950 md:px-8 lg:px-10">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <section className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/82 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)]">
-          <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-5 border-b border-zinc-200/70 bg-[linear-gradient(135deg,_rgba(215,248,238,0.9),_rgba(250,246,231,0.82))] px-6 py-7 lg:border-r lg:border-b-0 lg:px-8 lg:py-8">
-              <Badge className="w-fit bg-emerald-700 px-3 py-1 text-white">Dashboard Admin</Badge>
-              <div>
-                <h1 className="text-4xl font-semibold leading-tight">Halo, {user.display_name}</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-600">
-                  Dashboard ini memusatkan fitur admin yang sudah punya endpoint aktif dan memberi status jelas
-                  untuk modul yang masih menunggu kontrak backend.
+    <YomuShell mode="admin">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-8 md:px-8 lg:px-10">
+        <section className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/88 shadow-[0_28px_70px_-42px_rgba(30,64,175,0.28)]">
+          <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-5 border-b border-zinc-200/70 bg-[linear-gradient(135deg,_rgba(224,231,255,0.94),_rgba(255,247,237,0.86))] px-6 py-7 lg:border-r lg:border-b-0 lg:px-8 lg:py-8">
+              <Badge className="w-fit bg-indigo-700 px-3 py-1 text-white">Dashboard Admin</Badge>
+              <div className="space-y-3">
+                <h1 className="text-4xl leading-tight font-semibold">Halo, {user.display_name}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-zinc-600 md:text-base">
+                  Dashboard ini memusatkan tugas admin harian dan memberi penanda jelas untuk fitur yang belum dibuka.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
-                  <Link href="/bacaankuis">
-                    Buka katalog konten
+                  <Link href="/admin/articles">
+                    Kelola artikel & kuis
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={onLogout}
-                  disabled={loggingOut}
-                >
+                <Button type="button" variant="outline" className="rounded-full" onClick={onLogout} disabled={loggingOut}>
                   <LogOut className="size-4" />
                   {loggingOut ? "Logout..." : "Logout"}
                 </Button>
@@ -157,56 +161,30 @@ export default function AdminPage() {
             </div>
 
             <div className="grid gap-4 px-6 py-7 lg:px-8 lg:py-8">
-              {adminModules.slice(0, 3).map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <Card key={item.title} className="border-black/5 bg-white/86 shadow-none">
-                    <CardContent className="flex items-start gap-4 p-5">
-                      <div className="rounded-2xl bg-zinc-950 p-3 text-white">
-                        <Icon className="size-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-zinc-600">{item.description}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {[
+                ["Aktif", "Artikel, kuis, moderasi komentar, pemulihan sinkronisasi"],
+                ["Segera hadir", "Achievement, daily mission, penutupan musim liga"],
+                ["Fokus kerja", "Tombol hanya ditampilkan saat fitur sudah bisa dipakai"],
+              ].map(([label, value]) => (
+                <Card key={label} className="border-black/5 bg-white shadow-none">
+                  <CardContent className="p-5">
+                    <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">{label}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-700">{value}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {adminModules.map((item) => {
-            const Icon = item.icon;
-            const waiting = item.status.includes("Menunggu");
-
-            return (
-              <Card key={item.title} className="border-black/5 bg-white/86">
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className={`rounded-2xl p-3 ${waiting ? "bg-zinc-100 text-zinc-700" : "bg-emerald-100 text-emerald-700"}`}>
-                      <Icon className="size-5" />
-                    </div>
-                    <Badge variant={waiting ? "outline" : "default"} className={waiting ? "" : "bg-emerald-700 text-white"}>
-                      {item.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <h2 className="font-semibold">{item.title}</h2>
-                    <p className="mt-2 text-sm leading-6 text-zinc-600">{item.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {adminModules.map((module) => (
+            <ModuleCard key={module.href} {...module} />
+          ))}
         </section>
 
-        <AdminBacaanKuisManager adminName={user.display_name} />
         <FailedSyncEventsPanel />
       </div>
-    </main>
+    </YomuShell>
   );
 }

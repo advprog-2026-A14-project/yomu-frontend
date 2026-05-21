@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Toaster } from "@/src/components/ui/sonner";
 import GoogleOAuthProviderClient from "@/src/components/GoogleOAuthProviderClient";
 
 import "./globals.css";
@@ -16,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yomu Frontend",
-  description: "Simple auth frontend",
+  title: "Yomu",
+  description: "Platform gamifikasi literasi informasi untuk membaca, kuis, forum, clan, dan leaderboard.",
 };
 
 export default function RootLayout({
@@ -26,11 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleOAuthProviderClient>{children}</GoogleOAuthProviderClient>
+        <GoogleOAuthProviderClient>
+          {children}
+          <Toaster />
+        </GoogleOAuthProviderClient>
       </body>
     </html>
   );

@@ -50,6 +50,8 @@ function storeAuthSession(data: AuthData | GoogleAuthData) {
 
   window.localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token);
   window.localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  // also store in sessionStorage for Rust API access
+  try { window.sessionStorage.setItem("yomu_access_token", data.access_token); } catch { /* noop */ }
 }
 
 export function clearAuthSession() {
@@ -89,7 +91,7 @@ export function getStoredUser(): User | null {
 }
 
 export async function login(identifier: string, password: string) {
-  const response = await apiFetch<AuthData>("/api/v1/auth/login", {
+  const res = await apiFetch<AuthData>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify({
       identifier,
@@ -97,39 +99,39 @@ export async function login(identifier: string, password: string) {
     }),
   });
 
-  if (response.success && "data" in response && response.data) {
-    storeAuthSession(response.data);
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
 
-  return response;
+  return res;
 }
 
 export async function register(payload: RegisterPayload) {
-  const response = await apiFetch<AuthData>("/api/v1/auth/register", {
+  const res = await apiFetch<AuthData>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 
-  if (response.success && "data" in response && response.data) {
-    storeAuthSession(response.data);
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
 
-  return response;
+  return res;
 }
 
 export async function googleLogin(idToken: string) {
-  const response = await apiFetch<GoogleAuthData>("/api/v1/auth/google", {
+  const res = await apiFetch<GoogleAuthData>("/api/v1/auth/google", {
     method: "POST",
     body: JSON.stringify({
       id_token: idToken,
     }),
   });
 
-  if (response.success && "data" in response && response.data) {
-    storeAuthSession(response.data);
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
 
-  return response;
+  return res;
 }
 
 export async function me(): Promise<MeResult> {
@@ -159,16 +161,29 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout() {
-  try {
-    await apiFetch<never>("/api/v1/auth/logout", {
-      method: "POST",
-    });
-  } catch {
-    // Local session cleanup should still happen when the server logout route is unavailable.
-  }
-
   clearAuthSession();
+  try { window.sessionStorage.removeItem("yomu_access_token"); } catch { /* noop */ }
   return { success: true, message: "Logout berhasil" } satisfies ApiResponse<never>;
+}
+
+// sessionStorage helpers for Rust API (CSR direct calls)
+export function storeAuthToken(token: string) {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem("yomu_access_token", token);
+  }
+}
+
+export function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem("yomu_access_token") ?? getAccessToken();
+}
+
+export async function getCurrentUserId(): Promise<string | null> {
+  const result = await me();
+  if (result.response.success && "data" in result.response && result.response.data) {
+    return result.response.data.user_id;
+  }
+  return null;
 }
 
 export async function updateProfile(payload: { username?: string; display_name?: string }) {

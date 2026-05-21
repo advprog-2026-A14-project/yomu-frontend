@@ -22,12 +22,12 @@ function buildStats(articles: Article[], categories: string[]) {
     {
       label: "Bacaan aktif",
       value: String(articles.length),
-      detail: "Daftar ini langsung memakai endpoint artikel dari backend Java.",
+      detail: "Daftar bacaan terbaru yang siap dibuka.",
     },
     {
       label: "Kategori",
       value: String(categories.length),
-      detail: "Filter kategori mengikuti query `?category=` dari API publik.",
+      detail: "Gunakan kategori untuk menemukan topik yang paling relevan.",
     },
     {
       label: "Mode kuis",
@@ -65,8 +65,7 @@ export function ReadingCatalog({
                   Belajar membaca dengan ritme yang tenang, lalu uji pemahamanmu dalam satu ruang.
                 </h1>
                 <p className="max-w-2xl text-base leading-7 text-zinc-600 md:text-lg">
-                  Katalog ini mengikuti kontrak backend `articles` dan `quizzes`: pilih satu bacaan, buka kuis
-                  terkait, lalu submit sekali sebagai hasil akhir. Admin juga bisa menambah bacaan langsung dari sini.
+                  Pilih satu bacaan, pahami isinya, lalu kerjakan kuis terkait sebagai penutup sesi. Admin juga bisa menambah bacaan langsung dari sini.
                 </p>
               </div>
 
@@ -199,7 +198,7 @@ export function ReadingCatalog({
               <CardContent className="p-10 text-center">
                 <p className="text-lg font-medium text-zinc-900">Belum ada bacaan pada filter ini.</p>
                 <p className="mt-2 text-sm leading-6 text-zinc-500">
-                  Coba ganti kategori atau periksa apakah backend Java sudah memiliki data artikel.
+                  Coba ganti kategori atau kembali lagi setelah konten baru ditambahkan.
                 </p>
               </CardContent>
             </Card>
@@ -235,7 +234,7 @@ export function ReadingCatalog({
                   </div>
 
                   <div className="flex items-center justify-between text-sm text-zinc-500">
-                    <span>ID: {article.id}</span>
+                    <span>Kode: {article.id}</span>
                     <span>{estimateReadTime(article.content)}</span>
                   </div>
 

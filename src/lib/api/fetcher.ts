@@ -50,17 +50,17 @@ export function isApiResponse<T>(value: unknown): value is ApiResponse<T> {
   return true;
 }
 
-function buildApiUrl(path: string, baseUrl?: string) {
-  if (/^https?:\/\//i.test(path) || !baseUrl) {
+function buildApiUrl(path: string, baseUrl: string) {
+  if (/^https?:\/\//i.test(path)) {
     return path;
   }
 
-  return `${baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export async function apiFetchWithStatus<T>(
   path: string,
-  { baseUrl, token, headers, ...init }: ApiFetchOptions = {},
+  { baseUrl = API_BASE_URL, token, headers, ...init }: ApiFetchOptions = {},
 ): Promise<ApiFetchResult<T>> {
   const requestHeaders = new Headers(headers);
 
@@ -78,7 +78,6 @@ export async function apiFetchWithStatus<T>(
     const response = await fetch(buildApiUrl(path, baseUrl), {
       ...init,
       headers: requestHeaders,
-      credentials: init.credentials ?? "same-origin",
       cache: init.cache ?? "no-store",
     });
 
