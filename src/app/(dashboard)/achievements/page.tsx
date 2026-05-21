@@ -16,7 +16,7 @@ export default function AchievementsPage() {
               Achievement belum punya endpoint aktif yang terdokumentasi di frontend. Halaman ini dipertahankan
               sebagai status integrasi agar user tidak melihat placeholder `page`.
             </p>
-            <p>Setelah kontrak backend tersedia, halaman ini bisa memakai pola BFF yang sama dengan leaderboard.</p>
+            <p>Setelah kontrak backend tersedia, halaman ini bisa memakai direct API client yang sama dengan leaderboard.</p>
           </CardContent>
         </Card>
       </section>

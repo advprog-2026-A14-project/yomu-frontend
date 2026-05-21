@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { LogOut, RotateCcw, ShieldCheck } from "lucide-react";
+import { ArrowRight, Shield } from "lucide-react";
 
-import { logout, me, type User } from "@/src/lib/api/auth";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { logout, me, type User } from "@/src/lib/api/auth";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function AdminPage() {
       setLoading(false);
     };
 
-    checkSession();
+    void checkSession();
 
     return () => {
       active = false;
@@ -72,56 +72,53 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 sm:px-5 md:px-8">
-      <section className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <div className="flex min-w-0 flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-5 md:flex-row md:items-center md:justify-between md:p-6">
-          <div className="min-w-0">
-            <p className="text-sm text-zinc-500">Masuk sebagai Admin</p>
-            <h1 className="mt-1 text-2xl font-semibold leading-tight">Halo, {user.display_name}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
-              Halaman admin sekarang menjadi pintu masuk fitur operasional, bukan hanya greeting.
-            </p>
-          </div>
+    <main className="min-h-screen bg-[linear-gradient(180deg,_#f4efe3_0%,_#f7f7f4_38%,_#eef4ef_100%)] px-6 py-10">
+      <div className="mx-auto flex max-w-4xl flex-col gap-6">
+        <Card className="overflow-hidden border-black/5 bg-white/88 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)]">
+          <CardContent className="grid gap-6 px-6 py-8 md:grid-cols-[1.1fr_0.9fr] md:px-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-emerald-800">
+                <div className="rounded-2xl bg-emerald-100 p-3">
+                  <Shield className="size-5" />
+                </div>
+                <p className="text-sm font-medium">Mode admin aktif</p>
+              </div>
+              <div className="space-y-3">
+                <h1 className="text-3xl font-semibold text-zinc-950">Halo, {user.display_name}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-zinc-600">
+                  Pengelolaan bacaan dan kuis sekarang terintegrasi langsung di flow `bacaankuis`. Jadi kamu tidak perlu lagi memakai form admin terpisah untuk menambah artikel atau menyunting soal.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
+                  <Link href="/bacaankuis">
+                    Buka ruang kelola bacaankuis
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={onLogout}
+                  disabled={loggingOut}
+                >
+                  {loggingOut ? "Logout..." : "Logout"}
+                </Button>
+              </div>
+            </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="h-auto min-h-9 whitespace-normal px-4 py-2 text-center"
-            onClick={onLogout}
-            disabled={loggingOut}
-          >
-            <LogOut className="size-4" />
-            {loggingOut ? "Logout..." : "Logout"}
-          </Button>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="min-w-0 border-zinc-200 bg-white">
-            <CardContent className="space-y-3 p-5">
-              <ShieldCheck className="size-5 text-zinc-700" />
-              <h2 className="font-semibold">Session Admin</h2>
-              <p className="text-sm leading-6 text-zinc-600">
-                Role divalidasi dari `GET /api/v1/users/me`; user non-admin akan diarahkan ke `/app`.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="min-w-0 border-zinc-200 bg-white">
-            <CardContent className="space-y-3 p-5">
-              <RotateCcw className="size-5 text-zinc-700" />
-              <h2 className="font-semibold">Outbox Sync</h2>
-              <p className="text-sm leading-6 text-zinc-600">
-                Backend Java sudah punya endpoint retry failed sync. Frontend BFF/admin UI detail bisa
-                ditambahkan di atas pola auth yang sama.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Button asChild className="w-fit">
-          <Link href="/app">Lihat Hub Pelajar</Link>
-        </Button>
-      </section>
+            <div className="rounded-[1.75rem] bg-zinc-950 p-6 text-white">
+              <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Di mana mengelola konten?</p>
+              <div className="mt-4 space-y-4 text-sm leading-6 text-zinc-300">
+                <p>Tambah bacaan baru langsung dari halaman katalog `/bacaankuis`.</p>
+                <p>Tambah banyak soal, edit, dan hapus soal langsung dari halaman detail artikel.</p>
+                <p>Tombol-tombol itu hanya tampil kalau session kamu memang ber-role `ADMIN`.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

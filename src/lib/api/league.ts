@@ -1,4 +1,5 @@
-import { apiFetch } from "./fetcher";
+import { getAccessToken } from "./auth";
+import { apiFetch, RUST_API_BASE_URL } from "./fetcher";
 
 export type LeaderboardEntry = {
   clan_id: string;
@@ -28,14 +29,30 @@ export type Clan = {
 };
 
 export async function getLeaderboard(tier = "Bronze") {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk melihat leaderboard" };
+  }
+
   return apiFetch<Leaderboard>(`/api/v1/leaderboards?tier=${encodeURIComponent(tier)}`, {
     method: "GET",
+    baseUrl: RUST_API_BASE_URL,
+    token,
   });
 }
 
 export async function createClan(name: string, leaderId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk membuat clan" };
+  }
+
   return apiFetch<Clan>("/api/v1/clans", {
     method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token,
     body: JSON.stringify({
       name,
       leader_id: leaderId,
@@ -44,6 +61,12 @@ export async function createClan(name: string, leaderId: string) {
 }
 
 export async function getUserTier(userId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk melihat tier user" };
+  }
+
   return apiFetch<{
     user_id: string;
     clan_id: string | null;
@@ -51,5 +74,7 @@ export async function getUserTier(userId: string) {
     tier: string | null;
   }>(`/api/v1/users/${userId}/tier`, {
     method: "GET",
+    baseUrl: RUST_API_BASE_URL,
+    token,
   });
 }

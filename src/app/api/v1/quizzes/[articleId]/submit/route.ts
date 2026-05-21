@@ -1,28 +1,31 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
 import { coreFetch } from "@/src/lib/server/coreProxy";
-import { readBearerToken } from "@/src/lib/server/auth";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ articleId: string }> },
 ) {
-  const authorization = await readBearerToken();
+  const { articleId } = await params;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
 
-  if (!authorization) {
-    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  if (!token) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
+    );
   }
 
-  const { articleId } = await params;
   const body = await request.text();
-  const result = await coreFetch<unknown>(
-    `/api/v1/quizzes/${encodeURIComponent(articleId)}/submit`,
-    {
-      method: "POST",
-      body,
-      headers: { Authorization: authorization },
-    },
-  );
+
+  const result = await coreFetch(`/api/v1/quizzes/${encodeURIComponent(articleId)}/submit`, {
+    method: "POST",
+    body,
+    headers: { Authorization: `Bearer ${token}` },
+  });
 
   return NextResponse.json(result.body, { status: result.status });
 }

@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 
+import { API_BASE_URL } from '@/src/lib/api/fetcher';
+
 type LegacyQuizItem = {
   id: string;
   title: string;
@@ -11,7 +13,12 @@ export default function ConnectivityTest() {
   const [status, setStatus] = useState('Connecting...');
 
   useEffect(() => {
-    fetch('/api/v1/articles')
+    fetch(`${API_BASE_URL}/api/v1/articles`, {
+      headers: {
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    })
       .then((res) => {
         if (!res.ok) throw new Error('Backend Unreachable');
         return res.json();
@@ -19,7 +26,7 @@ export default function ConnectivityTest() {
       .then((payload) => {
         if (!payload.success) throw new Error(payload.message);
         setData(payload.data ?? []);
-        setStatus('Success! Connected to Java through Next BFF.');
+        setStatus('Success! Connected directly to Java backend.');
       })
       .catch((err) => setStatus(`Error: ${err.message}`));
   }, []);

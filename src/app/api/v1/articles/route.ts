@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function GET(request: Request) {
-  const { search } = new URL(request.url);
-  const result = await coreFetch<unknown[]>(`/api/v1/articles${search}`, {
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category");
+  const query = category ? `?category=${encodeURIComponent(category)}` : "";
+
+  const result = await coreFetch(`/api/v1/articles${query}`, {
     method: "GET",
   });
 
