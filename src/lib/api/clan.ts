@@ -1,5 +1,4 @@
 import { apiFetch, apiFetchWithStatus } from "./fetcher";
-import type { ApiResponse } from "./types";
 import type {
   ClanDetail,
   JoinRequest,
