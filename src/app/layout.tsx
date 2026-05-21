@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Toaster } from "@/src/components/ui/sonner";
 import GoogleOAuthProviderClient from "@/src/components/GoogleOAuthProviderClient";
 
 import "./globals.css";
@@ -30,7 +31,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <GoogleOAuthProviderClient>{children}</GoogleOAuthProviderClient>
+        <GoogleOAuthProviderClient>
+          {children}
+          <Toaster />
+        </GoogleOAuthProviderClient>
       </body>
     </html>
   );

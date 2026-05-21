@@ -19,7 +19,7 @@ type ForumPreviewItem = {
   latestSnippet: string | null;
 };
 
-function countComments(comments: Comment[]) {
+function countComments(comments: Comment[]): number {
   return comments.reduce(
     (total, comment) => total + 1 + countComments(comment.replies ?? []),
     0,

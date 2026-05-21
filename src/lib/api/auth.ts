@@ -37,29 +37,41 @@ export type MeResult = {
 };
 
 export async function login(identifier: string, password: string) {
-  return apiFetch<AuthData>("/api/v1/auth/login", {
+  const res = await apiFetch<AuthData>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify({
       identifier,
       password,
     }),
   });
+  if (res.success && "data" in res && res.data?.access_token) {
+    storeAuthToken(res.data.access_token);
+  }
+  return res;
 }
 
 export async function register(payload: RegisterPayload) {
-  return apiFetch<AuthData>("/api/v1/auth/register", {
+  const res = await apiFetch<AuthData>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+  if (res.success && "data" in res && res.data?.access_token) {
+    storeAuthToken(res.data.access_token);
+  }
+  return res;
 }
 
 export async function googleLogin(idToken: string) {
-  return apiFetch<GoogleAuthData>("/api/v1/auth/google", {
+  const res = await apiFetch<GoogleAuthData>("/api/v1/auth/google", {
     method: "POST",
     body: JSON.stringify({
       id_token: idToken,
     }),
   });
+  if (res.success && "data" in res && res.data?.access_token) {
+    storeAuthToken(res.data.access_token);
+  }
+  return res;
 }
 
 export async function me(): Promise<MeResult> {
@@ -101,7 +113,29 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout() {
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("yomu_access_token");
+  }
   return apiFetch<never>("/api/v1/auth/logout", {
     method: "POST",
   });
+}
+
+export function storeAuthToken(token: string) {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("yomu_access_token", token);
+  }
+}
+
+export function getStoredAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return sessionStorage.getItem("yomu_access_token");
+}
+
+export async function getCurrentUserId(): Promise<string | null> {
+  const result = await me();
+  if (result.response.success && "data" in result.response && result.response.data) {
+    return result.response.data.user_id;
+  }
+  return null;
 }
