@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function PATCH(
@@ -9,14 +8,10 @@ export async function PATCH(
   { params }: { params: Promise<{ quizId: string }> },
 ) {
   const { quizId } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const body = await request.text();
@@ -31,18 +26,14 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ quizId: string }> },
 ) {
   const { quizId } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const result = await coreFetch(`/api/v1/admin/quizzes/${encodeURIComponent(quizId)}`, {

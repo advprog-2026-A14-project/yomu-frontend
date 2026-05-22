@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { ReadingCatalog } from "@/src/components/bacaankuis/ReadingCatalog";
+import { YomuShell } from "@/src/components/yomu/YomuShell";
 import { getArticles } from "@/src/lib/server/bacaankuis";
 import { getCurrentUser } from "@/src/lib/server/session";
 
@@ -41,13 +42,15 @@ export default async function BacaanKuisPage({ searchParams }: Props) {
   const adminName = userResponse.data.display_name;
 
   return (
-    <ReadingCatalog
-      articles={articles}
-      categories={categories}
-      activeCategory={category}
-      error={articlesResponse.success ? null : articlesResponse.message}
-      isAdmin={isAdmin}
-      adminName={adminName}
-    />
+    <YomuShell mode={isAdmin ? "admin" : "learner"}>
+      <ReadingCatalog
+        articles={articles}
+        categories={categories}
+        activeCategory={category}
+        error={articlesResponse.success ? null : articlesResponse.message}
+        isAdmin={isAdmin}
+        adminName={adminName}
+      />
+    </YomuShell>
   );
 }

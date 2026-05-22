@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function GET(request: NextRequest) {
@@ -29,9 +30,18 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const token = await getAuthToken(request);
+
+  if (!token) {
+    return unauthorizedResponse();
+  }
+
   const result = await coreFetch<Array<{ user_id: string; display_name: string; username: string }>>(
     `/api/v1/users/batch?ids=${ids.join(",")}`,
-    { cache: "no-store" }
+    {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${token}` },
+    }
   );
 
   if (!result.ok) {

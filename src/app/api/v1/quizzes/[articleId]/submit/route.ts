@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function POST(
@@ -9,14 +8,10 @@ export async function POST(
   { params }: { params: Promise<{ articleId: string }> },
 ) {
   const { articleId } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const body = await request.text();
