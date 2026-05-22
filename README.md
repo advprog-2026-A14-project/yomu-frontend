@@ -1,40 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yomu Frontend
+
+A Next.js 16 application with shadcn/ui for the Yomu project.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: shadcn/ui
+- **Styling**: Tailwind CSS v4
+- **Language**: TypeScript
+
+## Project Structure
+
+```
+src/
+├── app/                    # App Router pages
+│   ├── (auth)/            # Auth routes (no sidebar)
+│   │   ├── login/
+│   │   └── register/
+│   ├── (dashboard)/       # Dashboard routes (with sidebar)
+│   │   ├── clans/
+│   │   ├── leaderboard/
+│   │   ├── missions/
+│   │   └── achievements/
+│   ├── globals.css
+│   └── layout.tsx
+├── components/
+│   ├── layout/            # Layout components (Sidebar, Navbar)
+│   └── ui/                # shadcn/ui components
+├── features/
+│   ├── auth/              # Auth features
+│   ├── league/            # League features
+│   └── gamification/      # Gamification features
+├── lib/                   # Utilities
+└── types/                 # TypeScript definitions
+```
 
 ## Getting Started
-Install the dependencies:
+
+Install dependencies:
+
 ```bash
 npm install
 ```
 
-run the development server:
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
+## Adding shadcn Components
+
+```bash
+npx shadcn@latest add [component-name]
+```
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js Docs](https://nextjs.org/docs)
+- [shadcn/ui](https://ui.shadcn.com)
+- [Tailwind CSS](https://tailwindcss.com)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# FE Auth Simple
+## Flow
+- Login local: browser memanggil `POST {NEXT_PUBLIC_YOMU_API_BASE_URL}/api/v1/auth/login` langsung ke Java backend.
+- Register local: browser memanggil `POST {NEXT_PUBLIC_YOMU_API_BASE_URL}/api/v1/auth/register` langsung ke Java backend.
+- Login Google SSO: browser memakai `@react-oauth/google`, lalu kirim `id_token` langsung ke endpoint Google auth Java backend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Session
+- Token access disimpan di `localStorage` dengan key `yomu_access_token`.
+- Data user terakhir disimpan di `localStorage` dengan key `yomu_user`.
+- Request private mengirim `Authorization: Bearer <token>` langsung dari browser.
 
-## Deploy on Vercel
+## Proteksi Halaman Sederhana
+- Halaman `/app` dan `/admin` memanggil `GET /api/v1/users/me` saat mount.
+- Jika status `401/403`, user di-redirect ke `/auth/login`.
+- Halaman `/admin` mengecek role user:
+  - role bukan `ADMIN` diarahkan ke `/app`
+- Redirect awal setelah login:
+  - `ADMIN` => `/admin`
+  - `PELAJAR` => `/app`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Catatan Penting Saat Pull `main` (Untuk Tambah Modul/Fitur Baru)
+- Gunakan helper `src/lib/api/fetcher.ts`; jangan membuat proxy Next route handler baru untuk API backend.
+- Pastikan backend mengaktifkan CORS untuk origin frontend saat development beda port/origin.
+- Jangan decode/verify JWT di frontend. Status login dan role selalu sumbernya dari `GET /api/v1/users/me`.
+- Semua endpoint baru wajib pakai wrapper JSON:
+  - sukses + data: `{"success": true, "message": "...", "data": ...}`
+  - sukses tanpa data: `{"success": true, "message": "..."}`
+  - error: `{"success": false, "message": "..."}`
+- Semua key JSON wajib `snake_case`.
+- Saat bikin halaman protected baru:
+  - panggil `me()` di client saat mount
+  - jika `401/403` redirect ke `/auth/login`
+  - jika butuh role tertentu, validasi `resp.data.role` lalu redirect sesuai kebutuhan
+- Untuk Google SSO:
+  - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` di frontend harus sama dengan client id verifier di backend
+  - pastikan OAuth origin `http://localhost:3000` terdaftar di Google Cloud
+- Format `.env.local` wajib bersih tanpa spasi di nilai dan tanpa komentar inline, contoh:
+  - `NEXT_PUBLIC_YOMU_API_BASE_URL=http://localhost:8081`
+  - `NEXT_PUBLIC_RUST_ENGINE_BASE_URL=http://localhost:8080`
+  - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com`
+- Minimal verifikasi sebelum push:
+  - `npm run lint`
+  - `npm run build`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<!-- Auto-deploy test: 2026-05-21T19:26:08+07:00 -->
+# Test deploy trigger Thu May 21 19:26:46 WIB 2026
