@@ -92,7 +92,7 @@ function ClanLeaderboardCard({ tier }: { tier: string }) {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const res = await getLeaderboard();
+    const res = await getLeaderboard(tier);
     setLoading(false);
     if (res.success && "data" in res && res.data) {
       setEntries(res.data.entries.filter((e: LeaderboardEntry) => e.tier === tier));

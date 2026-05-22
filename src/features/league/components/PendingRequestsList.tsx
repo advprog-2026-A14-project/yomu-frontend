@@ -1,41 +1,27 @@
-"use client";
-
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Button } from "@/src/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
 import { Badge } from "@/src/components/ui/badge";
-import { Check, X, Loader2 } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import type { JoinRequest } from "@/src/types/clan";
 
 interface PendingRequestsListProps {
   requests: JoinRequest[];
-  onApprove: (requestId: string) => Promise<void>;
-  onReject: (requestId: string) => Promise<void>;
 }
 
 export default function PendingRequestsList({
   requests,
-  onApprove,
-  onReject,
 }: PendingRequestsListProps) {
-  const [processingId, setProcessingId] = useState<string | null>(null);
-
   if (requests.length === 0) {
-    return null;
-  }
-
-  async function handleAction(requestId: string, action: "approve" | "reject") {
-    setProcessingId(requestId);
-    try {
-      if (action === "approve") {
-        await onApprove(requestId);
-      } else {
-        await onReject(requestId);
-      }
-    } finally {
-      setProcessingId(null);
-    }
+    return (
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="flex items-start gap-3 p-5">
+          <ShieldAlert className="mt-1 size-5 text-amber-700" />
+          <p className="text-sm leading-6 text-amber-950/80">
+            Permintaan bergabung dan persetujuan leader sedang disiapkan. Panel ini akan aktif pada pembaruan berikutnya.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -52,7 +38,7 @@ export default function PendingRequestsList({
               <TableHead>User ID</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
+              <TableHead>Catatan</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,35 +59,8 @@ export default function PendingRequestsList({
                     {req.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      disabled={processingId === req.id}
-                      onClick={() => handleAction(req.id, "approve")}
-                    >
-                      {processingId === req.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Check className="h-4 w-4" />
-                      )}
-                      <span className="ml-1 hidden sm:inline">Setuju</span>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={processingId === req.id}
-                      onClick={() => handleAction(req.id, "reject")}
-                    >
-                      {processingId === req.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <X className="h-4 w-4" />
-                      )}
-                      <span className="ml-1 hidden sm:inline">Tolak</span>
-                    </Button>
-                  </div>
+                <TableCell className="text-sm text-muted-foreground">
+                  Aksi persetujuan belum dibuka.
                 </TableCell>
               </TableRow>
             ))}

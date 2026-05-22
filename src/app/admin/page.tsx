@@ -3,12 +3,74 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowRight, Shield, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenText,
+  CalendarCheck2,
+  LogOut,
+  Medal,
+  MessageSquareText,
+  RefreshCw,
+  Shield,
+  Zap,
+} from "lucide-react";
 
+import { FailedSyncEventsPanel } from "@/src/components/admin/FailedSyncEventsPanel";
+import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+import { ModuleCard } from "@/src/components/yomu/ModuleCard";
+import { YomuShell } from "@/src/components/yomu/YomuShell";
 import { logout, me, type User } from "@/src/lib/api/auth";
 import { AdminClanSection } from "@/src/components/admin/AdminClanSection";
+
+const adminModules = [
+  {
+    title: "Artikel & Kuis",
+    description: "Create/delete artikel, tambah banyak soal, edit soal, dan hapus soal.",
+    href: "/admin/articles",
+    icon: BookOpenText,
+    tone: "bg-indigo-50 text-indigo-700",
+  },
+  {
+    title: "Kesehatan Sinkronisasi",
+    description: "Pantau proses pengiriman data dan pulihkan item yang perlu diproses ulang.",
+    href: "/admin/sync",
+    icon: RefreshCw,
+    tone: "bg-emerald-50 text-emerald-700",
+  },
+  {
+    title: "Moderasi Forum",
+    description: "Kelola percakapan artikel dan jaga ruang diskusi tetap sehat.",
+    href: "/admin/forum",
+    icon: MessageSquareText,
+    status: "Parsial",
+    tone: "bg-sky-50 text-sky-700",
+  },
+  {
+    title: "Achievement Admin",
+    description: "Pengelolaan pencapaian sedang disiapkan untuk rilis berikutnya.",
+    href: "/admin/achievements",
+    icon: Medal,
+    status: "Segera hadir",
+    tone: "bg-violet-50 text-violet-700",
+  },
+  {
+    title: "Daily Mission Admin",
+    description: "Pengelolaan misi harian sedang disiapkan untuk rilis berikutnya.",
+    href: "/admin/missions",
+    icon: CalendarCheck2,
+    status: "Segera hadir",
+    tone: "bg-amber-50 text-amber-700",
+  },
+  {
+    title: "Liga & Clan",
+    description: "Kelola season, leaderboard, dan process buffs clan.",
+    href: "/admin/season",
+    icon: Shield,
+    tone: "bg-indigo-50 text-indigo-700",
+  },
+];
 
 export default function AdminPage() {
   const router = useRouter();
@@ -61,7 +123,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return <main className="p-6">Memuat data...</main>;
+    return <main className="p-6">Memuat dashboard admin...</main>;
   }
 
   if (error) {
@@ -73,69 +135,66 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f4efe3_0%,_#f7f7f4_38%,_#eef4ef_100%)] px-6 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <Card className="overflow-hidden border-black/5 bg-white/88 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)]">
-          <CardContent className="grid gap-6 px-6 py-8 md:grid-cols-[1.1fr_0.9fr] md:px-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-emerald-800">
-                <div className="rounded-2xl bg-emerald-100 p-3">
-                  <Shield className="size-5" />
-                </div>
-                <p className="text-sm font-medium">Mode admin aktif</p>
-              </div>
+    <YomuShell mode="admin">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-8 md:px-8 lg:px-10">
+        <section className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/88 shadow-[0_28px_70px_-42px_rgba(30,64,175,0.28)]">
+          <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-5 border-b border-zinc-200/70 bg-[linear-gradient(135deg,_rgba(224,231,255,0.94),_rgba(255,247,237,0.86))] px-6 py-7 lg:border-r lg:border-b-0 lg:px-8 lg:py-8">
+              <Badge className="w-fit bg-indigo-700 px-3 py-1 text-white">Dashboard Admin</Badge>
               <div className="space-y-3">
-                <h1 className="text-3xl font-semibold text-zinc-950">Halo, {user.display_name}</h1>
-                <p className="max-w-2xl text-sm leading-7 text-zinc-600">
-                  Dua area utama yang bisa kamu kelola: bacaan dan kuis untuk konten pembelajaran, dan
-                  liga clan untuk sistem gamifikasi.
+                <h1 className="text-4xl leading-tight font-semibold">Halo, {user.display_name}</h1>
+                <p className="max-w-2xl text-sm leading-7 text-zinc-600 md:text-base">
+                  Dashboard ini memusatkan tugas admin harian — bacaan dan kuis untuk konten pembelajaran,
+                  serta liga clan untuk sistem gamifikasi.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
-                  <Link href="/bacaankuis">
-                    Kelola Bacaan dan Kuis
+                  <Link href="/admin/articles">
+                    Kelola artikel &amp; kuis
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full"
-                  onClick={onLogout}
-                  disabled={loggingOut}
-                >
+                <Button type="button" variant="outline" className="rounded-full" onClick={onLogout} disabled={loggingOut}>
+                  <LogOut className="size-4" />
                   {loggingOut ? "Logout..." : "Logout"}
                 </Button>
               </div>
             </div>
 
-            <div className="rounded-[1.75rem] bg-zinc-950 p-6 text-white">
-              <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Ringkasan akses</p>
-              <div className="mt-4 space-y-3 text-sm leading-6 text-zinc-300">
-                <div className="flex items-start gap-2">
-                  <ArrowRight className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                  <span>Bacaan dan Kuis — via halaman /bacaankuis</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <ArrowRight className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                  <span>Liga dan Clan — bagian bawah halaman ini</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 rounded-2xl bg-indigo-100 px-4 py-2 text-indigo-700">
-              <Zap className="size-4" />
-              <span className="text-sm font-medium">Sistem Liga dan Clan</span>
+            <div className="grid gap-4 px-6 py-7 lg:px-8 lg:py-8">
+              {[
+                ["Aktif", "Artikel, kuis, moderasi komentar, pemulihan sinkronisasi, liga & clan"],
+                ["Segera hadir", "Achievement, daily mission, penutupan musim liga"],
+                ["Fokus kerja", "Tombol hanya ditampilkan saat fitur sudah bisa dipakai"],
+              ].map(([label, value]) => (
+                <Card key={label} className="border-black/5 bg-white shadow-none">
+                  <CardContent className="p-5">
+                    <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">{label}</p>
+                    <p className="mt-2 text-sm leading-6 text-zinc-700">{value}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
+        </section>
+
+        <section>
+          <div className="mb-4 flex items-center gap-2 rounded-2xl bg-indigo-100 px-4 py-2 text-indigo-700">
+            <Zap className="size-4" />
+            <span className="text-sm font-medium">Sistem Liga dan Clan</span>
+          </div>
           <AdminClanSection />
-        </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {adminModules.map((module) => (
+            <ModuleCard key={module.href} {...module} />
+          ))}
+        </section>
+
+        <FailedSyncEventsPanel />
       </div>
-    </main>
+    </YomuShell>
   );
 }

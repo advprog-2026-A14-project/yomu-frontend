@@ -43,15 +43,29 @@ export async function createComment(articleId: string, content: string, parentCo
 }
 
 export async function updateComment(commentId: string, content: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk mengubah komentar" };
+  }
+
   return apiFetch<Comment>(`/api/v1/forums/comments/${commentId}`, {
     method: "PUT",
+    token,
     body: JSON.stringify({ content }),
   });
 }
 
 export async function deleteComment(commentId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk menghapus komentar" };
+  }
+
   return apiFetch<never>(`/api/v1/forums/comments/${commentId}`, {
     method: "DELETE",
+    token,
   });
 }
 

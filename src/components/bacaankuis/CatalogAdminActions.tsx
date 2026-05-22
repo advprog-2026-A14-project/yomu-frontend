@@ -89,7 +89,7 @@ export function CatalogAdminActions({ adminName }: Props) {
               </DialogHeader>
 
               <div className="mt-8 space-y-4 text-sm leading-6 text-zinc-400">
-                <p>Pakai ID yang stabil, misalnya `art-olahraga-001`.</p>
+                <p>Pakai kode bacaan yang mudah dikenali, misalnya `art-olahraga-001`.</p>
                 <p>Tulis isi bacaan dengan paragraf terpisah agar tampil rapi di ruang baca.</p>
                 <p>Kalau artikel sudah tersimpan, kamu bisa langsung buka artikelnya lalu menambahkan banyak soal dari sana.</p>
               </div>
@@ -98,7 +98,7 @@ export function CatalogAdminActions({ adminName }: Props) {
             <div className="space-y-4 px-7 py-8">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-900">Article ID</label>
+                  <label className="text-sm font-medium text-zinc-900">Kode bacaan</label>
                   <Input
                     placeholder="art-olahraga-001"
                     value={form.id}

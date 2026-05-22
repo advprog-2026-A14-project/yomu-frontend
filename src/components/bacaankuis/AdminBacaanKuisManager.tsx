@@ -200,7 +200,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
 
   const handleUpdateQuiz = async () => {
     if (!quizUpdateForm.quizId.trim()) {
-      setError("Quiz ID wajib diisi untuk edit.");
+      setError("Kode soal wajib diisi untuk edit.");
       return;
     }
 
@@ -227,7 +227,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
 
   const handleDeleteQuiz = async () => {
     if (!deleteQuizId.trim()) {
-      setError("Quiz ID wajib diisi untuk hapus.");
+      setError("Kode soal wajib diisi untuk hapus.");
       return;
     }
 
@@ -251,7 +251,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
 
   const handleDeleteArticle = async () => {
     if (!deleteArticleId.trim()) {
-      setError("Article ID wajib diisi untuk hapus.");
+      setError("Kode bacaan wajib diisi untuk hapus.");
       return;
     }
 
@@ -280,7 +280,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold">Hello Admin, {adminName}</h1>
         <p className="text-sm text-zinc-500">
-          Kelola artikel dan kuis langsung dari frontend. Semua action di sini memakai endpoint admin backend.
+          Kelola artikel dan kuis dari satu ruang kerja admin.
         </p>
       </div>
 
@@ -295,7 +295,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="Article ID, mis. art-010"
+              placeholder="Kode bacaan, mis. art-010"
               value={articleForm.id}
               onChange={(event) => setArticleForm((current) => ({ ...current, id: event.target.value }))}
             />
@@ -365,7 +365,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="Quiz ID, mis. quiz-010"
+              placeholder="Kode soal, mis. quiz-010"
               value={quizForm.id}
               onChange={(event) => setQuizForm((current) => ({ ...current, id: event.target.value }))}
             />
@@ -376,7 +376,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
               onChange={(event) => setQuizForm((current) => ({ ...current, question: event.target.value }))}
             />
             <Input
-              placeholder="Options dipisah titik koma, mis. A;B;C;D"
+              placeholder="Pilihan dipisah titik koma, mis. A. ...; B. ...; C. ...; D. ..."
               value={quizForm.options}
               onChange={(event) => setQuizForm((current) => ({ ...current, options: event.target.value }))}
             />
@@ -395,7 +395,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
           <CardHeader>
             <CardTitle>Kuis Artikel Terpilih</CardTitle>
             <CardDescription>
-              Backend publik tidak mengirim jawaban benar, jadi panel ini dipakai untuk konteks ID dan soal.
+              Pilih soal untuk meninjau pertanyaan dan pilihan jawabannya.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -419,12 +419,12 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
           <CardHeader>
             <CardTitle>Edit Kuis</CardTitle>
             <CardDescription>
-              Isi ulang seluruh field karena endpoint admin update tidak punya GET detail jawaban benar.
+              Isi ulang jawaban benar saat menyimpan perubahan agar penilaian tetap akurat.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input
-              placeholder="Quiz ID"
+              placeholder="Kode soal"
               value={quizUpdateForm.quizId}
               onChange={(event) =>
                 setQuizUpdateForm((current) => ({ ...current, quizId: event.target.value }))
@@ -439,7 +439,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
               }
             />
             <Input
-              placeholder="Options dipisah titik koma"
+              placeholder="Pilihan dipisah titik koma"
               value={quizUpdateForm.options}
               onChange={(event) =>
                 setQuizUpdateForm((current) => ({ ...current, options: event.target.value }))
@@ -467,7 +467,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
             <div className="space-y-3">
               <p className="text-sm font-medium">Hapus Kuis</p>
               <Input
-                placeholder="Quiz ID"
+                placeholder="Kode soal"
                 value={deleteQuizId}
                 onChange={(event) => setDeleteQuizId(event.target.value)}
               />
@@ -479,7 +479,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
             <div className="space-y-3 border-t border-zinc-100 pt-5">
               <p className="text-sm font-medium">Hapus Artikel</p>
               <Input
-                placeholder="Article ID"
+                placeholder="Kode bacaan"
                 value={deleteArticleId}
                 onChange={(event) => setDeleteArticleId(event.target.value)}
               />
