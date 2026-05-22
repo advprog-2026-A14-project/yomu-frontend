@@ -49,11 +49,11 @@ export default function CreateClanForm({ userId, onSuccess }: CreateClanFormProp
         leader_id: userId,
       });
       if (res.success) {
-        toast.success("Klan berhasil dibuat!");
+        toast.success("Clan berhasil dibuat!");
         form.reset();
         onSuccess?.();
       } else {
-        toast.error(res.message || "Gagal membuat klan");
+        toast.error(res.message || "Gagal membuat clan");
       }
     } catch {
       toast.error("Terjadi kesalahan jaringan");
@@ -63,11 +63,11 @@ export default function CreateClanForm({ userId, onSuccess }: CreateClanFormProp
   }
 
   return (
-    <Card>
+    <Card className="border-black/5 bg-white/88 shadow-[0_28px_70px_-46px_rgba(30,64,175,0.24)]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Plus className="h-5 w-5" />
-          Buat Klan Baru
+          Buat Clan Baru
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -78,9 +78,9 @@ export default function CreateClanForm({ userId, onSuccess }: CreateClanFormProp
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nama Klan</FormLabel>
+                  <FormLabel>Nama Clan</FormLabel>
                   <FormControl>
-                    <Input placeholder="Masukkan nama klan..." {...field} />
+                    <Input placeholder="Masukkan nama clan..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,7 +88,7 @@ export default function CreateClanForm({ userId, onSuccess }: CreateClanFormProp
             />
             <Button type="submit" disabled={loading} className="w-full">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Buat Klan
+              Buat Clan
             </Button>
           </form>
         </Form>

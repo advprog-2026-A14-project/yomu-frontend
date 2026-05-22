@@ -1,34 +1,18 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { getCurrentUserId, getStoredAuthToken } from "@/src/lib/api/auth";
-import {
-  getClanDetail,
-  getPendingRequests,
-  approveJoinRequest,
-  rejectJoinRequest,
-  deleteClan,
-} from "@/src/lib/api/clan";
-import { toast } from "sonner";
-import ClanDetailCard from "@/src/features/league/components/ClanDetailCard";
-import PendingRequestsList from "@/src/features/league/components/PendingRequestsList";
-import JoinRequestButton from "@/src/features/league/components/JoinRequestButton";
-import { Button } from "@/src/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/src/components/ui/alert-dialog";
-import { ArrowLeft, Trash2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import type { ClanDetail, JoinRequest } from "@/src/types/clan";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, Loader2, ShieldAlert, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+
+import ClanDetailCard from "@/src/features/league/components/ClanDetailCard";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent } from "@/src/components/ui/card";
+import { YomuShell } from "@/src/components/yomu/YomuShell";
+import { getCurrentUserId, getStoredAuthToken } from "@/src/lib/api/auth";
+import { getClanDetail, joinClan } from "@/src/lib/api/clan";
+import type { ClanDetail } from "@/src/types/clan";
 
 export default function ClanDetailPage() {
   const params = useParams();
@@ -36,13 +20,13 @@ export default function ClanDetailPage() {
   const clanId = params.clanId as string;
 
   const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [clan, setClan] = useState<ClanDetail | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
-  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
     setError(null);
 
     const token = getStoredAuthToken();
@@ -59,165 +43,117 @@ export default function ClanDetailPage() {
     setUserId(uid);
 
     const clanRes = await getClanDetail(clanId);
+    setLoading(false);
+
     if (!clanRes.success || !("data" in clanRes) || !clanRes.data) {
-      setError(clanRes.message || "Klan tidak ditemukan");
-      setLoading(false);
+      setError(clanRes.message || "Clan tidak ditemukan");
       return;
     }
 
-    const clanData = clanRes.data;
-    setClan(clanData);
-
-    const isLeader = clanData.leader_id === uid;
-    if (isLeader) {
-      const reqRes = await getPendingRequests(clanId, uid);
-      if (reqRes.response.success && "data" in reqRes.response && reqRes.response.data) {
-        setPendingRequests(reqRes.response.data);
-      }
-    }
-
-    setLoading(false);
+    setClan(clanRes.data);
   }, [clanId, router]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    load();
+    void load();
   }, [load]);
 
-  async function handleApprove(requestId: string) {
-    if (!userId) return;
-    const res = await approveJoinRequest(requestId, userId);
-    if (res.success) {
-      toast.success("Anggota telah disetujui");
-      load();
-    } else {
-      toast.error(res.message || "Gagal menyetujui");
+  const handleJoin = async () => {
+    if (!userId || !clan) {
+      return;
     }
-  }
 
-  async function handleReject(requestId: string) {
-    if (!userId) return;
-    const res = await rejectJoinRequest(requestId, userId);
-    if (res.success) {
-      toast.success("Permintaan ditolak");
-      load();
-    } else {
-      toast.error(res.message || "Gagal menolak");
+    setJoining(true);
+    const response = await joinClan({
+      clan_id: clan.id,
+      user_id: userId,
+    });
+    setJoining(false);
+
+    if (!response.success) {
+      toast.error(response.message || "Gagal bergabung dengan clan");
+      return;
     }
-  }
 
-  async function handleDelete() {
-    if (!userId || !clan) return;
-    setDeleting(true);
-    const res = await deleteClan(clan.id, userId);
-    if (res.success) {
-      toast.success("Klan telah dihapus");
-      router.push("/clans");
-    } else {
-      toast.error(res.message || "Gagal menghapus klan");
-      setDeleting(false);
-    }
-  }
+    toast.success("Berhasil bergabung dengan clan");
+    await load();
+  };
 
-  if (loading) {
-    return <ClanDetailSkeleton />;
-  }
-
-  if (error || !clan) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <Link
-          href="/clans"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Kembali ke Klan
-        </Link>
-        <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-lg text-destructive">{error ?? "Klan tidak ditemukan"}</p>
-          <button
-            onClick={load}
-            className="mt-4 rounded bg-primary px-4 py-2 text-primary-foreground"
-          >
-            Coba Lagi
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const isLeader = userId === clan.leader_id;
-  const isMember = clan.members.some((m) => m.user_id === userId);
-  const isNotMember = !isMember;
+  const isMember = Boolean(clan?.members?.some((member) => member.user_id === userId));
+  const isLeader = clan?.leader_id === userId;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-      <Link
-        href="/clans"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Kembali ke Klan
-      </Link>
+    <YomuShell mode="learner">
+      <div className="mx-auto max-w-5xl space-y-6 px-5 py-8 md:px-8 lg:px-10">
+        <Button asChild variant="outline" className="rounded-full">
+          <Link href="/clans">
+            <ArrowLeft className="size-4" />
+            Kembali ke clan
+          </Link>
+        </Button>
 
-      <ClanDetailCard clan={clan} />
+        {loading ? <ClanDetailSkeleton /> : null}
 
-      {isLeader && (
-        <PendingRequestsList
-          requests={pendingRequests}
-          onApprove={handleApprove}
-          onReject={handleReject}
-        />
-      )}
-
-      {isNotMember && userId && (
-        <div className="flex justify-center">
-          <JoinRequestButton clanId={clan.id} userId={userId} onSuccess={load} />
-        </div>
-      )}
-
-      {isLeader && (
-        <div className="flex justify-end border-t pt-6">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Hapus Klan
+        {error ? (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="space-y-4 p-6">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button type="button" variant="outline" className="rounded-full" onClick={load}>
+                Coba lagi
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Hapus Klan</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tindakan ini tidak dapat dibatalkan. Semua anggota akan
-                  dikeluarkan dari klan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={deleting}>Batal</AlertDialogCancel>
-                <AlertDialogAction
-                  disabled={deleting}
-                  onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Hapus
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      )}
-    </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {clan ? (
+          <>
+            <ClanDetailCard clan={clan} />
+
+            {!isMember && userId ? (
+              <Card className="border-indigo-100 bg-indigo-50">
+                <CardContent className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-start gap-3">
+                    <UserPlus className="mt-1 size-5 text-indigo-700" />
+                    <div>
+                    <p className="font-semibold text-indigo-950">Gabung clan</p>
+                      <p className="mt-1 text-sm leading-6 text-indigo-950/75">
+                        Bergabunglah jika kamu mengenal clan ini dan ingin ikut mengumpulkan skor bersama.
+                      </p>
+                    </div>
+                  </div>
+                  <Button type="button" className="rounded-full bg-indigo-700 text-white hover:bg-indigo-800" onClick={handleJoin} disabled={joining}>
+                    {joining ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
+                    {joining ? "Bergabung..." : "Gabung clan"}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {isLeader ? (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardContent className="flex items-start gap-3 p-6">
+                  <ShieldAlert className="mt-1 size-5 text-amber-700" />
+                  <div>
+                    <p className="font-semibold text-amber-950">Fitur leader sedang disiapkan</p>
+                    <p className="mt-1 text-sm leading-6 text-amber-950/75">
+                      Penghapusan clan dan persetujuan anggota belum dibuka. Tombol akan muncul saat fitur sudah siap dipakai.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    </YomuShell>
   );
 }
 
 function ClanDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-      <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-      <div className="h-48 animate-pulse rounded-lg bg-muted" />
-      <div className="h-32 animate-pulse rounded-lg bg-muted" />
+    <div className="space-y-4">
+      <div className="h-36 animate-pulse rounded-[1.5rem] bg-white/70" />
+      <div className="h-64 animate-pulse rounded-[1.5rem] bg-white/70" />
     </div>
   );
 }
