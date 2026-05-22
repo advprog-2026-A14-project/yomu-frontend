@@ -10,10 +10,17 @@ type ApiFetchResult<T> = {
   response: ApiResponse<T>;
 };
 
+<<<<<<< HEAD
+const defaultApiBaseUrl =
+  process.env.NEXT_PUBLIC_YOMU_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8081";
+
+export const API_BASE_URL = defaultApiBaseUrl;
+=======
 const javaApiBaseUrl =
   process.env.NEXT_PUBLIC_YOMU_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8081";
 
 export const API_BASE_URL = typeof window === "undefined" ? javaApiBaseUrl : "";
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
 export const RUST_API_BASE_URL =
   process.env.NEXT_PUBLIC_RUST_ENGINE_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8080";
@@ -58,6 +65,8 @@ function buildApiUrl(path: string, baseUrl: string) {
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+<<<<<<< HEAD
+=======
 function readBrowserToken() {
   if (typeof window === "undefined") {
     return null;
@@ -70,6 +79,7 @@ function readBrowserToken() {
   }
 }
 
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 export async function apiFetchWithStatus<T>(
   path: string,
   { baseUrl = API_BASE_URL, token, headers, ...init }: ApiFetchOptions = {},
@@ -82,10 +92,15 @@ export async function apiFetchWithStatus<T>(
     requestHeaders.set("Content-Type", "application/json");
   }
 
+<<<<<<< HEAD
+  if (token) {
+    requestHeaders.set("Authorization", `Bearer ${token}`);
+=======
   const authToken = token ?? readBrowserToken();
 
   if (authToken) {
     requestHeaders.set("Authorization", `Bearer ${authToken}`);
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   }
 
   try {
@@ -93,7 +108,10 @@ export async function apiFetchWithStatus<T>(
       ...init,
       headers: requestHeaders,
       cache: init.cache ?? "no-store",
+<<<<<<< HEAD
+=======
       credentials: init.credentials ?? "same-origin",
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
     });
 
     let payload: unknown;

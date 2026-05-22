@@ -106,6 +106,12 @@ export default function LoginPage() {
           <h2 className="max-w-2xl text-4xl leading-tight font-semibold md:text-5xl">
             Setelah login, kamu bisa lanjut membaca, berdiskusi, mengelola clan, dan melihat papan peringkat.
           </h2>
+<<<<<<< HEAD
+          <p className="max-w-xl text-base leading-7 text-zinc-600">
+            Admin akan diarahkan ke dashboard admin. Pelajar masuk ke dashboard belajar dan kompetisi clan.
+          </p>
+=======
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
         </div>
       </section>
     </main>
