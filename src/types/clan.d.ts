@@ -70,13 +70,13 @@ export interface ClanMembership {
 export interface LeaderboardEntry {
   clan_id: string;
   clan_name: string;
-  tier: ClanTier;
+  tier: string;
   total_score: number;
   rank: number;
 }
 
 export interface LeaderboardDto {
-  tier: ClanTier;
+  tier: string;
   entries: LeaderboardEntry[];
 }
 

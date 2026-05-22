@@ -1,23 +1,44 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
+"use client";
+
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
 import { Badge } from "@/src/components/ui/badge";
-import { ShieldAlert } from "lucide-react";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/src/components/ui/table";
+import { ShieldAlert, CheckCircle, XCircle } from "lucide-react";
 import type { JoinRequest } from "@/src/types/clan";
 
 interface PendingRequestsListProps {
   requests: JoinRequest[];
+  onApprove: (requestId: string) => Promise<void>;
+  onReject: (requestId: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export default function PendingRequestsList({
   requests,
+  onApprove,
+  onReject,
+  isLoading = false,
 }: PendingRequestsListProps) {
-  if (requests.length === 0) {
+  const pendingRequests = requests.filter((req) => req.status === "pending");
+
+  if (pendingRequests.length === 0) {
     return (
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-green-200 bg-green-50">
         <CardContent className="flex items-start gap-3 p-5">
-          <ShieldAlert className="mt-1 size-5 text-amber-700" />
-          <p className="text-sm leading-6 text-amber-950/80">
-            Permintaan bergabung dan persetujuan leader sedang disiapkan. Panel ini akan aktif pada pembaruan berikutnya.
+          <CheckCircle className="mt-1 size-5 text-green-700" />
+          <p className="text-sm leading-6 text-green-950/80">
+            Tidak ada permintaan bergabung yang tertunda.
           </p>
         </CardContent>
       </Card>
@@ -28,7 +49,7 @@ export default function PendingRequestsList({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-          Permintaan Bergabung ({requests.length})
+          Permintaan Bergabung ({pendingRequests.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -38,11 +59,11 @@ export default function PendingRequestsList({
               <TableHead>User ID</TableHead>
               <TableHead>Tanggal</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Catatan</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requests.map((req) => (
+            {pendingRequests.map((req) => (
               <TableRow key={req.id}>
                 <TableCell className="font-mono text-xs">{req.user_id}</TableCell>
                 <TableCell>
@@ -59,8 +80,39 @@ export default function PendingRequestsList({
                     {req.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  Aksi persetujuan belum dibuka.
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                      onClick={() => void onApprove(req.id)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="size-4" />
+                      )}
+                      Setuju
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                      onClick={() => void onReject(req.id)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <XCircle className="size-4" />
+                      )}
+                      Tolak
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
