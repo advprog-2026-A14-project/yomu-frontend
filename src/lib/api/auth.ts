@@ -258,3 +258,31 @@ export async function deleteAccount() {
 
   return response;
 }
+
+export type PublicUser = {
+  user_id: string;
+  display_name: string;
+  username: string;
+};
+
+export async function getBatchUsers(userIds: string[]): Promise<PublicUser[]> {
+  if (userIds.length === 0) return [];
+
+  const token = getAccessToken();
+
+  if (!token) {
+    return [];
+  }
+
+  const idsParam = userIds.join(",");
+  const response = await apiFetch<PublicUser[]>(`/api/v1/users/batch?ids=${idsParam}`, {
+    method: "GET",
+    token,
+  });
+
+  if (response.success && "data" in response && response.data) {
+    return response.data;
+  }
+
+  return [];
+}
