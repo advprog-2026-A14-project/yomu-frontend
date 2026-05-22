@@ -12,6 +12,7 @@ import {
   MessageSquareText,
   RefreshCw,
   Shield,
+  Zap,
 } from "lucide-react";
 
 import { FailedSyncEventsPanel } from "@/src/components/admin/FailedSyncEventsPanel";
@@ -21,6 +22,7 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import { ModuleCard } from "@/src/components/yomu/ModuleCard";
 import { YomuShell } from "@/src/components/yomu/YomuShell";
 import { logout, me, type User } from "@/src/lib/api/auth";
+import { AdminClanSection } from "@/src/components/admin/AdminClanSection";
 
 const adminModules = [
   {
@@ -62,12 +64,11 @@ const adminModules = [
     tone: "bg-amber-50 text-amber-700",
   },
   {
-    title: "End Season Liga",
-    description: "Penutupan musim liga akan dibuka saat aturan musim sudah siap.",
+    title: "Liga & Clan",
+    description: "Kelola season, leaderboard, dan process buffs clan.",
     href: "/admin/season",
     icon: Shield,
-    status: "Segera hadir",
-    tone: "bg-zinc-100 text-zinc-800",
+    tone: "bg-indigo-50 text-indigo-700",
   },
 ];
 
@@ -143,13 +144,14 @@ export default function AdminPage() {
               <div className="space-y-3">
                 <h1 className="text-4xl leading-tight font-semibold">Halo, {user.display_name}</h1>
                 <p className="max-w-2xl text-sm leading-7 text-zinc-600 md:text-base">
-                  Dashboard ini memusatkan tugas admin harian dan memberi penanda jelas untuk fitur yang belum dibuka.
+                  Dashboard ini memusatkan tugas admin harian — bacaan dan kuis untuk konten pembelajaran,
+                  serta liga clan untuk sistem gamifikasi.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
                   <Link href="/admin/articles">
-                    Kelola artikel & kuis
+                    Kelola artikel &amp; kuis
                     <ArrowRight className="size-4" />
                   </Link>
                 </Button>
@@ -162,7 +164,7 @@ export default function AdminPage() {
 
             <div className="grid gap-4 px-6 py-7 lg:px-8 lg:py-8">
               {[
-                ["Aktif", "Artikel, kuis, moderasi komentar, pemulihan sinkronisasi"],
+                ["Aktif", "Artikel, kuis, moderasi komentar, pemulihan sinkronisasi, liga & clan"],
                 ["Segera hadir", "Achievement, daily mission, penutupan musim liga"],
                 ["Fokus kerja", "Tombol hanya ditampilkan saat fitur sudah bisa dipakai"],
               ].map(([label, value]) => (
@@ -175,6 +177,14 @@ export default function AdminPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        <section>
+          <div className="mb-4 flex items-center gap-2 rounded-2xl bg-indigo-100 px-4 py-2 text-indigo-700">
+            <Zap className="size-4" />
+            <span className="text-sm font-medium">Sistem Liga dan Clan</span>
+          </div>
+          <AdminClanSection />
         </section>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

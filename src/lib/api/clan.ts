@@ -90,3 +90,104 @@ export async function getLeaderboard(tier: string) {
     token: auth.token,
   });
 }
+
+export async function triggerSeasonEnd(seasonId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/seasons/${encodeURIComponent(seasonId)}/end`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+  });
+}
+
+export async function processBuffs(clanId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/${encodeURIComponent(clanId)}/process-buffs`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+  });
+}
+
+export async function getAllClans() {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<ClanDetail[]>("/api/v1/clans", {
+    method: "GET",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+  });
+}
+
+export async function getPendingRequests(clanId: string, callerId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/${encodeURIComponent(clanId)}/join-requests?caller_id=${encodeURIComponent(callerId)}`, {
+    method: "GET",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+  });
+}
+
+export async function approveJoinRequest(requestId: string, callerId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/join-requests/${encodeURIComponent(requestId)}/approve`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify({ caller_id: callerId }),
+  });
+}
+
+export async function rejectJoinRequest(requestId: string, callerId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/join-requests/${encodeURIComponent(requestId)}/reject`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify({ caller_id: callerId }),
+  });
+}
+
+export async function deleteClan(clanId: string, callerId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/${encodeURIComponent(clanId)}`, {
+    method: "DELETE",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify({ caller_id: callerId }),
+  });
+}
