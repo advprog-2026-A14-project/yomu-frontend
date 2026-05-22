@@ -175,7 +175,7 @@ export function storeAuthToken(token: string) {
 
 export function getStoredAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return window.sessionStorage.getItem("yomu_access_token");
+  return window.sessionStorage.getItem("yomu_access_token") ?? getAccessToken();
 }
 
 export async function getCurrentUserId(): Promise<string | null> {
@@ -184,4 +184,105 @@ export async function getCurrentUserId(): Promise<string | null> {
     return result.response.data.user_id;
   }
   return null;
+}
+
+export async function updateProfile(payload: { username?: string; display_name?: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<User>("/api/v1/users/me", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+  if (response.success && "data" in response && response.data && canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  }
+
+  return response;
+}
+
+export async function updatePassword(payload: { current_password?: string; new_password: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  return apiFetch<never>("/api/v1/users/me/password", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateLoginIdentifiers(payload: { email?: string; phone_number?: string }) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<User>("/api/v1/users/me/login-identifiers", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(payload),
+  });
+
+  if (response.success && "data" in response && response.data && canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(response.data));
+  }
+
+  return response;
+}
+
+export async function deleteAccount() {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Session tidak ditemukan" };
+  }
+
+  const response = await apiFetch<never>("/api/v1/users/me", {
+    method: "DELETE",
+    token,
+  });
+
+  if (response.success) {
+    clearAuthSession();
+  }
+
+  return response;
+}
+
+export type PublicUser = {
+  user_id: string;
+  display_name: string;
+  username: string;
+};
+
+export async function getBatchUsers(userIds: string[]): Promise<PublicUser[]> {
+  if (userIds.length === 0) return [];
+
+  const token = getAccessToken();
+
+  if (!token) {
+    return [];
+  }
+
+  const idsParam = userIds.join(",");
+  const response = await apiFetch<PublicUser[]>(`/api/v1/users/batch?ids=${idsParam}`, {
+    method: "GET",
+    token,
+  });
+
+  if (response.success && "data" in response && response.data) {
+    return response.data;
+  }
+
+  return [];
 }

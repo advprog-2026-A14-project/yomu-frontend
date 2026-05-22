@@ -112,3 +112,6 @@ npx shadcn@latest add [component-name]
 - Minimal verifikasi sebelum push:
   - `npm run lint`
   - `npm run build`
+
+<!-- Auto-deploy test: 2026-05-21T19:26:08+07:00 -->
+# Test deploy trigger Thu May 21 19:26:46 WIB 2026

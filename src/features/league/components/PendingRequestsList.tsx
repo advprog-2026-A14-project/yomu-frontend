@@ -1,48 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Button } from "@/src/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+
 import { Badge } from "@/src/components/ui/badge";
-import { Check, X, Loader2 } from "lucide-react";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/src/components/ui/table";
 import type { JoinRequest } from "@/src/types/clan";
 
 interface PendingRequestsListProps {
   requests: JoinRequest[];
   onApprove: (requestId: string) => Promise<void>;
   onReject: (requestId: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export default function PendingRequestsList({
   requests,
   onApprove,
   onReject,
+  isLoading = false,
 }: PendingRequestsListProps) {
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const pendingRequests = requests.filter((req) => req.status === "pending");
 
-  if (requests.length === 0) {
-    return null;
-  }
-
-  async function handleAction(requestId: string, action: "approve" | "reject") {
-    setProcessingId(requestId);
-    try {
-      if (action === "approve") {
-        await onApprove(requestId);
-      } else {
-        await onReject(requestId);
-      }
-    } finally {
-      setProcessingId(null);
-    }
+  if (pendingRequests.length === 0) {
+    return (
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="flex items-start gap-3 p-5">
+          <CheckCircle className="mt-1 size-5 text-green-700" />
+          <p className="text-sm leading-6 text-green-950/80">
+            Tidak ada permintaan bergabung yang tertunda.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-          Permintaan Bergabung ({requests.length})
+          Permintaan Bergabung ({pendingRequests.length})
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -56,7 +61,7 @@ export default function PendingRequestsList({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requests.map((req) => (
+            {pendingRequests.map((req) => (
               <TableRow key={req.id}>
                 <TableCell className="font-mono text-xs">{req.user_id}</TableCell>
                 <TableCell>
@@ -76,30 +81,34 @@ export default function PendingRequestsList({
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
+                      type="button"
+                      variant="outline"
                       size="sm"
-                      variant="default"
-                      disabled={processingId === req.id}
-                      onClick={() => handleAction(req.id, "approve")}
+                      className="border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+                      onClick={() => void onApprove(req.id)}
+                      disabled={isLoading}
                     >
-                      {processingId === req.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      {isLoading ? (
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <Check className="h-4 w-4" />
+                        <CheckCircle className="size-4" />
                       )}
-                      <span className="ml-1 hidden sm:inline">Setuju</span>
+                      Setuju
                     </Button>
                     <Button
+                      type="button"
+                      variant="outline"
                       size="sm"
-                      variant="destructive"
-                      disabled={processingId === req.id}
-                      onClick={() => handleAction(req.id, "reject")}
+                      className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                      onClick={() => void onReject(req.id)}
+                      disabled={isLoading}
                     >
-                      {processingId === req.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                      {isLoading ? (
+                        <Loader2 className="size-4 animate-spin" />
                       ) : (
-                        <X className="h-4 w-4" />
+                        <XCircle className="size-4" />
                       )}
-                      <span className="ml-1 hidden sm:inline">Tolak</span>
+                      Tolak
                     </Button>
                   </div>
                 </TableCell>

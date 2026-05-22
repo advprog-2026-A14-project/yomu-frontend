@@ -1,25 +1,43 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Badge } from "@/src/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
-import type { ClanDetail } from "@/src/types/clan";
+import { useEffect, useState } from "react";
 
-const TIER_COLORS: Record<string, string> = {
-  Bronze: "bg-amber-700 text-white",
-  Silver: "bg-slate-400 text-white",
-  Gold: "bg-yellow-500 text-white",
-  Diamond: "bg-cyan-500 text-white",
-};
+import { Badge } from "@/src/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
+import { TierBadge } from "@/src/components/yomu/TierBadge";
+import { getBatchUsers, type PublicUser } from "@/src/lib/api/auth";
+import type { ClanDetail } from "@/src/types/clan";
 
 interface ClanDetailCardProps {
   clan: ClanDetail;
 }
 
 export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
+  const [users, setUsers] = useState<Map<string, PublicUser>>(new Map());
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const userIds = clan.members.map((m) => m.user_id);
+    if (userIds.length === 0) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    getBatchUsers(userIds).then((batch) => {
+      const map = new Map<string, PublicUser>();
+      batch.forEach((u) => map.set(u.user_id, u));
+      setUsers(map);
+      setLoading(false);
+    });
+  }, [clan.members]);
+
+  const members = clan.members ?? [];
+  const buffs = clan.active_buffs ?? [];
+  const debuffs = clan.active_debuffs ?? [];
+
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="overflow-hidden border-black/5 bg-white/88">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-2xl">{clan.name}</CardTitle>
@@ -32,9 +50,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className={TIER_COLORS[clan.tier] ?? "bg-gray-500 text-white"}>
-              {clan.tier}
-            </Badge>
+            <TierBadge tier={clan.tier} />
             <div className="text-right">
               <p className="text-2xl font-bold">{clan.total_score}</p>
               <p className="text-xs text-muted-foreground">Total Skor</p>
@@ -43,49 +59,56 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
         </CardHeader>
       </Card>
 
-      <Card>
+      <Card className="border-black/5 bg-white/88">
         <CardHeader>
-          <CardTitle className="text-lg">Anggota ({clan.members.length})</CardTitle>
+          <CardTitle className="text-lg">Anggota ({members.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User ID</TableHead>
+                <TableHead>Nama</TableHead>
                 <TableHead>Peran</TableHead>
                 <TableHead>Bergabung</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clan.members.map((member) => (
-                <TableRow key={member.user_id}>
-                  <TableCell className="font-mono text-xs">{member.user_id}</TableCell>
-                  <TableCell>
-                    <Badge variant={member.role === "Leader" ? "default" : "secondary"}>
-                      {member.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(member.joined_at).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {members.map((member) => {
+                const user = users.get(member.user_id);
+                return (
+                  <TableRow key={member.user_id}>
+                    <TableCell>
+                      <span className="font-medium">
+                        {user?.display_name ?? member.user_id}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={member.role === "Leader" ? "default" : "secondary"}>
+                        {member.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(member.joined_at).toLocaleDateString("id-ID", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {clan.active_buffs.length > 0 && (
-        <Card>
+      {buffs.length > 0 && (
+        <Card className="border-black/5 bg-white/88">
           <CardHeader>
             <CardTitle className="text-lg">Buff Aktif</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            {clan.active_buffs.map((buff, i) => (
+            {buffs.map((buff, i) => (
               <Card key={i} className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                 <CardContent className="p-4">
                   <p className="font-medium">{buff.name}</p>
@@ -102,13 +125,13 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
         </Card>
       )}
 
-      {clan.active_debuffs.length > 0 && (
-        <Card>
+      {debuffs.length > 0 && (
+        <Card className="border-black/5 bg-white/88">
           <CardHeader>
             <CardTitle className="text-lg">Debuff Aktif</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            {clan.active_debuffs.map((debuff, i) => (
+            {debuffs.map((debuff, i) => (
               <Card key={i} className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
                 <CardContent className="p-4">
                   <p className="font-medium">{debuff.name}</p>

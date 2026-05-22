@@ -1,4 +1,4 @@
-/* 📝 TYPESCRIPT - Clan & League type definitions */
+/* TypeScript definitions for active Clan and League contracts. */
 
 export type ClanTier = "Bronze" | "Silver" | "Gold" | "Diamond";
 
@@ -60,29 +60,23 @@ export interface JoinClanPayload {
   user_id: string;
 }
 
-export interface CreateJoinRequestPayload {
+export interface ClanMembership {
   clan_id: string;
   user_id: string;
-}
-
-export interface ApproveRejectPayload {
-  caller_id: string;
-}
-
-export interface DeleteClanPayload {
-  caller_id: string;
+  role: "Leader" | "Member";
+  joined_at: string;
 }
 
 export interface LeaderboardEntry {
   clan_id: string;
   clan_name: string;
-  tier: ClanTier;
+  tier: string;
   total_score: number;
-  member_count: number;
+  rank: number;
 }
 
 export interface LeaderboardDto {
-  tier: ClanTier;
+  tier: string;
   entries: LeaderboardEntry[];
 }
 

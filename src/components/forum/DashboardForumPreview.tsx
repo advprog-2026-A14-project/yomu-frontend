@@ -26,7 +26,7 @@ function countComments(comments: Comment[]): number {
   );
 }
 
-function findLatestSnippet(comments: Comment[]) {
+function findLatestSnippet(comments: Comment[]): string | null {
   const flatComments: Comment[] = [];
 
   const walk = (items: Comment[]) => {

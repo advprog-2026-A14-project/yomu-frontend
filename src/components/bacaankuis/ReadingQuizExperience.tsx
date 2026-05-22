@@ -166,7 +166,7 @@ export function ReadingQuizExperience({
     }
 
     if (!("data" in response) || !response.data) {
-      setSubmitError("Jawaban berhasil dikirim, tetapi hasil nilai belum dikembalikan oleh backend.");
+      setSubmitError("Jawaban berhasil dikirim, tetapi ringkasan nilai belum bisa ditampilkan.");
       return;
     }
 
@@ -183,15 +183,15 @@ export function ReadingQuizExperience({
     pushToResultPage(snapshot);
   };
 
-  const quizNotice = quizMessage ?? (quizUnavailable ? "Soal belum tersedia untuk artikel ini." : null);
+  const quizNotice = quizMessage ?? (quizUnavailable ? "Kuis untuk artikel ini belum dibuka." : null);
   const hasRepeatMessage = quizMessage?.toLowerCase().includes("sudah");
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f5f0e6_0%,_#f8f8f6_24%,_#edf4ef_100%)] text-zinc-900">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-5 md:px-8 md:py-8">
-        <div className="rounded-2xl border border-black/5 bg-white/80 px-5 py-5 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)] backdrop-blur md:px-8">
-          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0 space-y-4">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-6 md:px-8 md:py-8">
+        <div className="rounded-[2rem] border border-black/5 bg-white/80 px-5 py-5 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)] backdrop-blur md:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
                 <Link href="/bacaankuis" className="inline-flex items-center gap-2 hover:text-zinc-900">
                   <ArrowLeft className="size-4" />
@@ -207,12 +207,12 @@ export function ReadingQuizExperience({
                   {article.title}
                 </h1>
                 <p className="max-w-3xl text-base leading-7 text-zinc-600">
-                  Ruang baca ini terhubung ke backend Java asli. Admin bisa mengelola soal langsung dari artikel ini tanpa keluar konteks.
+                  Baca dengan tenang, lalu lanjutkan ke kuis dan diskusi tanpa keluar dari konteks artikel.
                 </p>
               </div>
             </div>
 
-            <div className="grid min-w-0 gap-3 md:grid-cols-3 lg:w-[28rem]">
+            <div className="grid gap-3 md:grid-cols-3 lg:w-[28rem]">
               <Card className="border-zinc-100 bg-zinc-50/90 shadow-none">
                 <CardContent className="space-y-1 p-4">
                   <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Waktu baca</p>
@@ -306,7 +306,7 @@ export function ReadingQuizExperience({
                     <p className="text-sm font-medium text-sky-900">Catatan integrasi</p>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-sky-900/80">
-                    Submit kuis sekarang mengirim jawaban user ke backend, lalu backend yang menghitung nilai akhir.
+                    Jawabanmu dinilai setelah semua soal dikirim.
                   </p>
                 </div>
               </div>
@@ -403,12 +403,12 @@ export function ReadingQuizExperience({
                 ) : null}
 
                 <div className="grid gap-3 rounded-3xl bg-zinc-50 p-4">
-                  <p className="text-xs tracking-wide text-zinc-500 uppercase">Checkpoint</p>
+                  <p className="text-xs tracking-[0.18em] text-zinc-500 uppercase">Checkpoint</p>
                   <p className="text-sm leading-6 text-zinc-700">
                     Soal yang sudah terjawab: {answeredQuestionNumbers.length > 0 ? answeredQuestionNumbers.join(", ") : "belum ada"}
                   </p>
                   <p className="text-sm leading-6 text-zinc-500">
-                    Nilai akhir akan dihitung di backend setelah semua jawaban dikirim.
+                    Nilai akhir akan muncul setelah semua jawaban dikirim.
                   </p>
                   {hasRepeatMessage && cachedResult ? (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
@@ -436,7 +436,7 @@ export function ReadingQuizExperience({
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-auto min-h-9 flex-1 whitespace-normal rounded-full px-4 py-2 text-center"
+                    className="flex-1 rounded-full"
                     onClick={() => setCurrentQuestionIndex((index) => Math.max(0, index - 1))}
                     disabled={quizUnavailable || currentQuestionIndex === 0}
                   >
@@ -470,10 +470,10 @@ export function ReadingQuizExperience({
 
             <Card className="border-black/5 bg-zinc-950 text-white">
               <CardContent className="space-y-3 p-6">
-                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Rule backend</p>
-                <p className="text-lg font-semibold">Submit final dilakukan sekali per artikel</p>
+                <p className="text-xs tracking-[0.18em] text-zinc-400 uppercase">Aturan kuis</p>
+                <p className="text-lg font-semibold">Kuis hanya dikirim satu kali per artikel</p>
                 <p className="text-sm leading-6 text-zinc-400">
-                  Setelah jawaban dikirim, backend akan menghitung score dan accuracy, menyimpan attempt user, lalu menyinkronkan hasil final ke Rust.
+                  Setelah jawaban dikirim, hasil akhir akan tersimpan sebagai progres belajarmu.
                 </p>
                 <div className="pt-2">
                   <Link href={`/forums/${article.id}`} className="text-sm text-emerald-300 hover:text-emerald-200">
