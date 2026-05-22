@@ -1,16 +1,36 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+import { Badge } from "@/src/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
-import type { ClanDetail } from "@/src/types/clan";
-import { Badge } from "@/src/components/ui/badge";
 import { TierBadge } from "@/src/components/yomu/TierBadge";
+import { getBatchUsers, type PublicUser } from "@/src/lib/api/auth";
+import type { ClanDetail } from "@/src/types/clan";
 
 interface ClanDetailCardProps {
   clan: ClanDetail;
 }
 
 export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
+  const [users, setUsers] = useState<Map<string, PublicUser>>(new Map());
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const userIds = clan.members.map((m) => m.user_id);
+    if (userIds.length === 0) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    getBatchUsers(userIds).then((batch) => {
+      const map = new Map<string, PublicUser>();
+      batch.forEach((u) => map.set(u.user_id, u));
+      setUsers(map);
+      setLoading(false);
+    });
+  }, [clan.members]);
+
   const members = clan.members ?? [];
   const buffs = clan.active_buffs ?? [];
   const debuffs = clan.active_debuffs ?? [];
@@ -47,29 +67,36 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User ID</TableHead>
+                <TableHead>Nama</TableHead>
                 <TableHead>Peran</TableHead>
                 <TableHead>Bergabung</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {members.map((member) => (
-                <TableRow key={member.user_id}>
-                  <TableCell className="font-mono text-xs">{member.user_id}</TableCell>
-                  <TableCell>
-                    <Badge variant={member.role === "Leader" ? "default" : "secondary"}>
-                      {member.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(member.joined_at).toLocaleDateString("id-ID", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {members.map((member) => {
+                const user = users.get(member.user_id);
+                return (
+                  <TableRow key={member.user_id}>
+                    <TableCell>
+                      <span className="font-medium">
+                        {user?.display_name ?? member.user_id}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={member.role === "Leader" ? "default" : "secondary"}>
+                        {member.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(member.joined_at).toLocaleDateString("id-ID", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
