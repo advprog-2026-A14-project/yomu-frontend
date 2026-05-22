@@ -3,7 +3,10 @@ import type { ReactNode } from "react";
 import { BookOpenText, Shield, Sparkles } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
+<<<<<<< HEAD
+=======
 import { LogoutNavButton } from "@/src/components/yomu/LogoutNavButton";
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
 type NavItem = {
   href: string;
@@ -61,7 +64,11 @@ export function YomuShell({ children, mode = "learner" }: Props) {
               </Button>
             </div>
           ) : (
+<<<<<<< HEAD
+            <nav className="flex max-w-full gap-2 overflow-x-auto pb-1 md:pb-0">
+=======
             <nav className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
               {nav.map((item) => (
                 <Link
                   key={item.href}
@@ -82,7 +89,10 @@ export function YomuShell({ children, mode = "learner" }: Props) {
                   Pelajar
                 </span>
               )}
+<<<<<<< HEAD
+=======
               <LogoutNavButton />
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
             </nav>
           )}
         </div>

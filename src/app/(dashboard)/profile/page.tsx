@@ -3,8 +3,9 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, KeyRound, Mail, Trash2, UserRound } from "lucide-react";
+import { ArrowLeft, Award, CheckCircle2, KeyRound, Mail, Trash2, UserRound } from "lucide-react";
 
+import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
@@ -17,6 +18,14 @@ import {
   updateProfile,
   type User,
 } from "@/src/lib/api/auth";
+import { getUserAchievements, type UserAchievementItem } from "@/src/lib/api/gamification";
+
+const RARITY_COLOR: Record<string, string> = {
+  Common: "bg-zinc-100 text-zinc-700 border-zinc-200",
+  Rare: "bg-blue-50 text-blue-700 border-blue-200",
+  Epic: "bg-purple-50 text-purple-700 border-purple-200",
+  Legendary: "bg-amber-50 text-amber-700 border-amber-200",
+};
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -27,6 +36,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("Memuat profil...");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [achievements, setAchievements] = useState<UserAchievementItem[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -60,6 +70,13 @@ export default function ProfilePage() {
         phone_number: currentUser.phone_number ?? "",
       });
       setMessage("Kelola identitas akun yang dipakai lintas modul Yomu.");
+
+      const achRes = await getUserAchievements(currentUser.user_id);
+      if (achRes.success && "data" in achRes && achRes.data) {
+        setAchievements(
+          achRes.data.achievements.filter((a) => a.is_completed && a.is_shown_on_profile),
+        );
+      }
     };
 
     void load();
@@ -290,6 +307,55 @@ export default function ProfilePage() {
               </form>
             </CardContent>
           </Card>
+        </div>
+
+        <div>
+          <div className="mb-4 flex items-center gap-2">
+            <Award className="size-5 text-amber-600" />
+            <h2 className="text-xl font-semibold">Pencapaian Publik</h2>
+            <Link
+              href="/achievements"
+              className="ml-auto text-sm text-zinc-500 hover:text-zinc-900"
+            >
+              Kelola →
+            </Link>
+          </div>
+
+          {achievements.length === 0 ? (
+            <Card className="border-black/5 bg-white/86">
+              <CardContent className="p-6 text-sm leading-6 text-zinc-500">
+                Belum ada pencapaian yang ditampilkan di profil. Selesaikan pencapaian dan aktifkan
+                &quot;Tampilkan di profil&quot; di halaman{" "}
+                <Link href="/achievements" className="font-medium text-zinc-900 underline">
+                  Misi &amp; Pencapaian
+                </Link>
+                .
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {achievements.map((ach) => (
+                <Card key={ach.achievement_id} className="border-black/5 bg-white/86">
+                  <CardContent className="flex items-start justify-between gap-3 p-5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                        <p className="truncate font-semibold leading-tight">{ach.name}</p>
+                      </div>
+                      <p className="mt-1 text-sm text-zinc-500">
+                        {ach.milestone_target} · {ach.reward_points} poin
+                      </p>
+                    </div>
+                    <Badge
+                      className={`shrink-0 border text-xs ${RARITY_COLOR[ach.achievement_type] ?? "bg-zinc-100 text-zinc-700"}`}
+                    >
+                      {ach.achievement_type}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </main>
