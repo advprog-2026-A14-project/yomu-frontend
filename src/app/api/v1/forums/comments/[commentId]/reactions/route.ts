@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function POST(
@@ -9,23 +8,41 @@ export async function POST(
   { params }: { params: Promise<{ commentId: string }> }
 ) {
   const { commentId } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      { success: false, message: "Unauthorized" },
-      { status: 401 }
-    );
+    return unauthorizedResponse();
   }
 
   const body = await request.text();
 
   const result = await coreFetch(
-    `/api/v1/forums/comments/${commentId}/reactions`,
+    `/api/v1/forums/comments/${encodeURIComponent(commentId)}/reactions`,
     {
       method: "POST",
       body,
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+
+  return NextResponse.json(result.body, { status: result.status });
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ commentId: string }> }
+) {
+  const { commentId } = await params;
+  const token = await getAuthToken(request);
+
+  if (!token) {
+    return unauthorizedResponse();
+  }
+
+  const result = await coreFetch(
+    `/api/v1/forums/comments/${encodeURIComponent(commentId)}/reactions`,
+    {
+      method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     }
   );

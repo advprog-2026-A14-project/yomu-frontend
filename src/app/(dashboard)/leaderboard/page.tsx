@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Medal, RefreshCw, Trophy } from "lucide-react";
 
 import { getLeaderboard, type Leaderboard } from "@/src/lib/api/league";
-import { getBatchUsers, type PublicUser } from "@/src/lib/api/auth";
+import { getBatchUsers } from "@/src/lib/api/auth";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";

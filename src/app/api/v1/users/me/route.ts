@@ -1,21 +1,16 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { AUTH_COOKIE_NAME } from "@/src/lib/server/cookies";
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_OPTIONS } from "@/src/lib/server/cookies";
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+const CLIENT_AUTH_COOKIE_NAME = "yomu_client_access_token";
+
+export async function GET(request: Request) {
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Unauthorized",
-      },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const result = await coreFetch("/api/v1/users/me", {
@@ -33,17 +28,10 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Unauthorized",
-      },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const body = await request.text();
@@ -59,18 +47,11 @@ export async function PATCH(request: Request) {
   return NextResponse.json(result.body, { status: result.status });
 }
 
-export async function DELETE() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+export async function DELETE(request: Request) {
+  const token = await getAuthToken(request);
 
   if (!token) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Unauthorized",
-      },
-      { status: 401 },
-    );
+    return unauthorizedResponse();
   }
 
   const result = await coreFetch("/api/v1/users/me", {
@@ -84,6 +65,10 @@ export async function DELETE() {
 
   if (result.body.success) {
     response.cookies.set(AUTH_COOKIE_NAME, "", {
+      ...AUTH_COOKIE_OPTIONS,
+      maxAge: 0,
+    });
+    response.cookies.set(CLIENT_AUTH_COOKIE_NAME, "", {
       path: "/",
       maxAge: 0,
     });

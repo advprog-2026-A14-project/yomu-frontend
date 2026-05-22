@@ -2,6 +2,7 @@ import { apiFetch, apiFetchWithStatus } from "./fetcher";
 import type {
   Article,
   ArticleCreateRequest,
+  ArticleUpdateRequest,
   QuizQuestion,
   QuizCreateRequest,
   QuizUpdateRequest,
@@ -53,6 +54,13 @@ export async function adminCreateArticle(payload: ArticleCreateRequest) {
 export async function adminDeleteArticle(articleId: string) {
   return apiFetch<never>(`/api/v1/admin/articles/${articleId}`, {
     method: "DELETE",
+  });
+}
+
+export async function adminUpdateArticle(articleId: string, payload: ArticleUpdateRequest) {
+  return apiFetch<Article>(`/api/v1/admin/articles/${articleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
   });
 }
 

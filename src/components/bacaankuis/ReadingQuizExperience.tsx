@@ -187,7 +187,7 @@ export function ReadingQuizExperience({
   const hasRepeatMessage = quizMessage?.toLowerCase().includes("sudah");
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,_#f5f0e6_0%,_#f8f8f6_24%,_#edf4ef_100%)] text-zinc-900">
+    <div className="min-h-screen bg-[linear-gradient(180deg,_#f5f0e6_0%,_#f8f8f6_24%,_#edf4ef_100%)] text-zinc-900">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-6 md:px-8 md:py-8">
         <div className="rounded-[2rem] border border-black/5 bg-white/80 px-5 py-5 shadow-[0_28px_70px_-42px_rgba(59,86,64,0.42)] backdrop-blur md:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -253,7 +253,7 @@ export function ReadingQuizExperience({
           />
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.82fr]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.78fr)]">
           <Card className="overflow-hidden border-black/5 bg-white/82">
             <div className={`h-36 bg-gradient-to-r ${categoryAccent(article.category)} px-6 py-5 md:px-8`}>
               <div className="flex h-full flex-col justify-between">
@@ -314,7 +314,7 @@ export function ReadingQuizExperience({
           </Card>
 
           <div className="space-y-6">
-            <Card className="sticky top-4 overflow-hidden border-black/5 bg-white/88">
+            <Card className="overflow-hidden border-black/5 bg-white/88 xl:sticky xl:top-24">
               <CardContent className="space-y-6 p-6">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm text-zinc-500">
@@ -485,6 +485,6 @@ export function ReadingQuizExperience({
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

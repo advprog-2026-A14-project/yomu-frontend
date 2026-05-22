@@ -10,10 +10,10 @@ type ApiFetchResult<T> = {
   response: ApiResponse<T>;
 };
 
-const defaultApiBaseUrl =
+const javaApiBaseUrl =
   process.env.NEXT_PUBLIC_YOMU_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8081";
 
-export const API_BASE_URL = defaultApiBaseUrl;
+export const API_BASE_URL = typeof window === "undefined" ? javaApiBaseUrl : "";
 
 export const RUST_API_BASE_URL =
   process.env.NEXT_PUBLIC_RUST_ENGINE_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8080";
@@ -58,6 +58,18 @@ function buildApiUrl(path: string, baseUrl: string) {
   return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function readBrowserToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem("yomu_access_token");
+  } catch {
+    return null;
+  }
+}
+
 export async function apiFetchWithStatus<T>(
   path: string,
   { baseUrl = API_BASE_URL, token, headers, ...init }: ApiFetchOptions = {},
@@ -70,8 +82,10 @@ export async function apiFetchWithStatus<T>(
     requestHeaders.set("Content-Type", "application/json");
   }
 
-  if (token) {
-    requestHeaders.set("Authorization", `Bearer ${token}`);
+  const authToken = token ?? readBrowserToken();
+
+  if (authToken) {
+    requestHeaders.set("Authorization", `Bearer ${authToken}`);
   }
 
   try {
@@ -79,6 +93,7 @@ export async function apiFetchWithStatus<T>(
       ...init,
       headers: requestHeaders,
       cache: init.cache ?? "no-store",
+      credentials: init.credentials ?? "same-origin",
     });
 
     let payload: unknown;

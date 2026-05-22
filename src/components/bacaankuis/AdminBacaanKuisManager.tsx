@@ -7,6 +7,7 @@ import {
   adminCreateQuiz,
   adminDeleteArticle,
   adminDeleteQuiz,
+  adminUpdateArticle,
   adminUpdateQuiz,
   getArticles,
   getQuizzes,
@@ -42,6 +43,12 @@ const emptyQuizUpdateForm = {
   answer: "",
 };
 
+const emptyArticleUpdateForm = {
+  title: "",
+  content: "",
+  category: "",
+};
+
 export function AdminBacaanKuisManager({ adminName }: Props) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedArticleId, setSelectedArticleId] = useState("");
@@ -49,6 +56,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
   const [articleForm, setArticleForm] = useState(emptyArticleForm);
   const [quizForm, setQuizForm] = useState(emptyQuizForm);
   const [quizUpdateForm, setQuizUpdateForm] = useState(emptyQuizUpdateForm);
+  const [articleUpdateForm, setArticleUpdateForm] = useState(emptyArticleUpdateForm);
   const [deleteQuizId, setDeleteQuizId] = useState("");
   const [deleteArticleId, setDeleteArticleId] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -159,6 +167,15 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
     setError(null);
   };
 
+  const selectArticle = (article: Article) => {
+    setSelectedArticleId(article.id);
+    setArticleUpdateForm({
+      title: article.title,
+      content: article.content,
+      category: article.category,
+    });
+  };
+
   const handleCreateArticle = async () => {
     resetMessages();
     setBusyKey("create-article");
@@ -196,6 +213,38 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
     setFeedback("Kuis berhasil dibuat.");
     setQuizForm(emptyQuizForm);
     await loadQuizzes(selectedArticleId);
+  };
+
+  const handleUpdateArticle = async () => {
+    if (!selectedArticleId) {
+      setError("Pilih artikel dulu untuk diedit.");
+      return;
+    }
+
+    resetMessages();
+    setBusyKey("update-article");
+
+    const response = await adminUpdateArticle(selectedArticleId, {
+      title: articleUpdateForm.title,
+      content: articleUpdateForm.content,
+      category: articleUpdateForm.category,
+    });
+    setBusyKey(null);
+
+    if (!response.success) {
+      setError(response.message);
+      return;
+    }
+
+    setFeedback("Artikel berhasil diperbarui.");
+    if ("data" in response && response.data) {
+      setArticleUpdateForm({
+        title: response.data.title,
+        content: response.data.content,
+        category: response.data.category,
+      });
+    }
+    await loadArticles();
   };
 
   const handleUpdateQuiz = async () => {
@@ -269,6 +318,7 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
     setFeedback("Artikel berhasil dihapus.");
     if (selectedArticleId === deleteArticleId.trim()) {
       setSelectedArticleId("");
+      setArticleUpdateForm(emptyArticleUpdateForm);
       setQuizzes([]);
     }
     setDeleteArticleId("");
@@ -342,7 +392,12 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
                       ? "border-zinc-950 bg-zinc-950 text-white"
                       : "border-zinc-200 bg-white text-zinc-800 hover:border-zinc-300"
                   }`}
-                  onClick={() => setSelectedArticleId(article.id)}
+                  onClick={() => {
+                    const selectedArticle = articles.find((item) => item.id === article.id);
+                    if (selectedArticle) {
+                      selectArticle(selectedArticle);
+                    }
+                  }}
                 >
                   <p className="text-xs uppercase opacity-70">{article.id}</p>
                   <p className="mt-1 font-medium">{article.title}</p>
@@ -458,6 +513,41 @@ export function AdminBacaanKuisManager({ adminName }: Props) {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Artikel</CardTitle>
+            <CardDescription>
+              {selectedArticleId ? `Artikel aktif: ${selectedArticleId}` : "Pilih artikel dari daftar untuk mengubah bacaan."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              placeholder="Judul baru"
+              value={articleUpdateForm.title}
+              onChange={(event) => setArticleUpdateForm((current) => ({ ...current, title: event.target.value }))}
+              disabled={!selectedArticleId}
+            />
+            <Input
+              placeholder="Kategori baru"
+              value={articleUpdateForm.category}
+              onChange={(event) => setArticleUpdateForm((current) => ({ ...current, category: event.target.value }))}
+              disabled={!selectedArticleId}
+            />
+            <Textarea
+              placeholder="Isi bacaan baru"
+              rows={8}
+              value={articleUpdateForm.content}
+              onChange={(event) => setArticleUpdateForm((current) => ({ ...current, content: event.target.value }))}
+              disabled={!selectedArticleId}
+            />
+            <Button type="button" onClick={handleUpdateArticle} disabled={!selectedArticleId || busyKey === "update-article"}>
+              {busyKey === "update-article" ? "Menyimpan..." : "Simpan Perubahan Artikel"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card>
           <CardHeader>
             <CardTitle>Danger Zone</CardTitle>

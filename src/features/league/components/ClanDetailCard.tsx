@@ -62,6 +62,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
       <Card className="border-black/5 bg-white/88">
         <CardHeader>
           <CardTitle className="text-lg">Anggota ({members.length})</CardTitle>
+          {loading ? <p className="text-sm text-muted-foreground">Memuat nama anggota...</p> : null}
         </CardHeader>
         <CardContent>
           <Table>
