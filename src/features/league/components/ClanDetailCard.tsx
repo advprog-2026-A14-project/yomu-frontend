@@ -1,25 +1,23 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Badge } from "@/src/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/src/components/ui/table";
 import type { ClanDetail } from "@/src/types/clan";
-
-const TIER_COLORS: Record<string, string> = {
-  Bronze: "bg-amber-700 text-white",
-  Silver: "bg-slate-400 text-white",
-  Gold: "bg-yellow-500 text-white",
-  Diamond: "bg-cyan-500 text-white",
-};
+import { Badge } from "@/src/components/ui/badge";
+import { TierBadge } from "@/src/components/yomu/TierBadge";
 
 interface ClanDetailCardProps {
   clan: ClanDetail;
 }
 
 export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
+  const members = clan.members ?? [];
+  const buffs = clan.active_buffs ?? [];
+  const debuffs = clan.active_debuffs ?? [];
+
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="overflow-hidden border-black/5 bg-white/88">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-2xl">{clan.name}</CardTitle>
@@ -32,9 +30,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge className={TIER_COLORS[clan.tier] ?? "bg-gray-500 text-white"}>
-              {clan.tier}
-            </Badge>
+            <TierBadge tier={clan.tier} />
             <div className="text-right">
               <p className="text-2xl font-bold">{clan.total_score}</p>
               <p className="text-xs text-muted-foreground">Total Skor</p>
@@ -43,9 +39,9 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
         </CardHeader>
       </Card>
 
-      <Card>
+      <Card className="border-black/5 bg-white/88">
         <CardHeader>
-          <CardTitle className="text-lg">Anggota ({clan.members.length})</CardTitle>
+          <CardTitle className="text-lg">Anggota ({members.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -57,7 +53,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clan.members.map((member) => (
+              {members.map((member) => (
                 <TableRow key={member.user_id}>
                   <TableCell className="font-mono text-xs">{member.user_id}</TableCell>
                   <TableCell>
@@ -79,13 +75,13 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
         </CardContent>
       </Card>
 
-      {clan.active_buffs.length > 0 && (
-        <Card>
+      {buffs.length > 0 && (
+        <Card className="border-black/5 bg-white/88">
           <CardHeader>
             <CardTitle className="text-lg">Buff Aktif</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            {clan.active_buffs.map((buff, i) => (
+            {buffs.map((buff, i) => (
               <Card key={i} className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                 <CardContent className="p-4">
                   <p className="font-medium">{buff.name}</p>
@@ -102,13 +98,13 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
         </Card>
       )}
 
-      {clan.active_debuffs.length > 0 && (
-        <Card>
+      {debuffs.length > 0 && (
+        <Card className="border-black/5 bg-white/88">
           <CardHeader>
             <CardTitle className="text-lg">Debuff Aktif</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
-            {clan.active_debuffs.map((debuff, i) => (
+            {debuffs.map((debuff, i) => (
               <Card key={i} className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
                 <CardContent className="p-4">
                   <p className="font-medium">{debuff.name}</p>

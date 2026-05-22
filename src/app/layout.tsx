@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yomu Frontend",
-  description: "Simple auth frontend",
+  title: "Yomu",
+  description: "Platform gamifikasi literasi informasi untuk membaca, kuis, forum, clan, dan leaderboard.",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="id">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

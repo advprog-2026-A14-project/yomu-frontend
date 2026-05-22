@@ -110,7 +110,7 @@ export function ArticleAdminPanel({ articleId, articleTitle, adminName, quizzes 
 
       if (!response.success) {
         setBusyAction(null);
-        setError(`Gagal menambahkan soal ${draft.id || "(tanpa ID)"}: ${response.message}`);
+        setError(`Gagal menambahkan soal ${draft.id || "(tanpa kode)"}: ${response.message}`);
         return;
       }
     }
@@ -247,8 +247,8 @@ export function ArticleAdminPanel({ articleId, articleTitle, adminName, quizzes 
                       </div>
 
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4 text-sm leading-6 text-zinc-400">
-                        <p>Format `options` tetap memakai titik koma seperti kontrak backend: `A;B;C;D`.</p>
-                        <p className="mt-2">Karena public quiz endpoint tidak mengirim jawaban benar, tab edit akan mengisi pertanyaan dan opsi dari data yang ada, lalu jawaban benar perlu kamu isi ulang saat menyimpan.</p>
+                        <p>Tulis pilihan jawaban dengan pemisah titik koma, misalnya `A. ...; B. ...; C. ...; D. ...`.</p>
+                        <p className="mt-2">Saat menyunting soal, isi ulang jawaban benar agar penilaian tetap akurat.</p>
                       </div>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export function ArticleAdminPanel({ articleId, articleTitle, adminName, quizzes 
 
                               <div className="mt-4 grid gap-4">
                                 <Input
-                                  placeholder="Quiz ID, mis. quiz-olahraga-01"
+                                  placeholder="Kode soal, mis. quiz-olahraga-01"
                                   value={draft.id}
                                   onChange={(event) => updateDraft(draft.localId, "id", event.target.value)}
                                 />
@@ -395,7 +395,7 @@ export function ArticleAdminPanel({ articleId, articleTitle, adminName, quizzes 
 
                           <div className="mt-4 grid gap-4">
                             <Input
-                              placeholder="Quiz ID"
+                              placeholder="Kode soal"
                               value={editState.quizId}
                               onChange={(event) => setEditState((current) => ({ ...current, quizId: event.target.value }))}
                             />

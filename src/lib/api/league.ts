@@ -60,6 +60,43 @@ export async function createClan(name: string, leaderId: string) {
   });
 }
 
+export async function joinClan(clanId: string, userId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk bergabung clan" };
+  }
+
+  return apiFetch<{
+    clan_id: string;
+    user_id: string;
+    role: string;
+    joined_at: string;
+  }>(`/api/v1/clans/${encodeURIComponent(clanId)}/join`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token,
+    body: JSON.stringify({
+      clan_id: clanId,
+      user_id: userId,
+    }),
+  });
+}
+
+export async function getClan(clanId: string) {
+  const token = getAccessToken();
+
+  if (!token) {
+    return { success: false as const, message: "Login diperlukan untuk melihat clan" };
+  }
+
+  return apiFetch<Clan>(`/api/v1/clans/${encodeURIComponent(clanId)}`, {
+    method: "GET",
+    baseUrl: RUST_API_BASE_URL,
+    token,
+  });
+}
+
 export async function getUserTier(userId: string) {
   const token = getAccessToken();
 

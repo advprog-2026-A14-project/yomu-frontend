@@ -22,12 +22,12 @@ function buildStats(articles: Article[], categories: string[]) {
     {
       label: "Bacaan aktif",
       value: String(articles.length),
-      detail: "Daftar ini langsung memakai endpoint artikel dari backend Java.",
+      detail: "Daftar bacaan terbaru yang siap dibuka.",
     },
     {
       label: "Kategori",
       value: String(categories.length),
-      detail: "Filter kategori mengikuti query `?category=` dari API publik.",
+      detail: "Gunakan kategori untuk menemukan topik yang paling relevan.",
     },
     {
       label: "Mode kuis",
@@ -49,12 +49,12 @@ export function ReadingCatalog({
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.95),_rgba(244,240,227,0.85)_28%,_rgba(216,232,224,0.8)_62%,_rgba(255,255,255,1)_100%)] text-zinc-900">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-5 md:px-8 lg:px-10">
-        <div className="overflow-hidden rounded-2xl border border-black/5 bg-white/75 shadow-[0_30px_80px_-45px_rgba(58,94,71,0.45)] backdrop-blur">
-          <div className="grid min-w-0 gap-7 px-5 py-7 md:px-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.9fr)] lg:px-10 lg:py-10">
-            <div className="min-w-0 space-y-5">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-5 py-8 md:px-8 lg:px-10">
+        <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/75 shadow-[0_30px_80px_-45px_rgba(58,94,71,0.45)] backdrop-blur">
+          <div className="grid gap-8 px-6 py-8 md:px-10 lg:grid-cols-[1.35fr_0.9fr] lg:px-12 lg:py-12">
+            <div className="space-y-6">
               <div className="flex flex-wrap items-center gap-3">
-                <Badge className="max-w-full whitespace-normal bg-emerald-700/90 px-3 py-1 text-[11px] tracking-wide text-white uppercase">
+                <Badge className="bg-emerald-700/90 px-3 py-1 text-[11px] tracking-[0.18em] text-white uppercase">
                   Yomu Reading Lab
                 </Badge>
                 <span className="text-sm text-zinc-500">Bacaan, kuis, dan pengelolaan konten dalam satu alur</span>
@@ -65,8 +65,7 @@ export function ReadingCatalog({
                   Belajar membaca dengan ritme yang tenang, lalu uji pemahamanmu dalam satu ruang.
                 </h1>
                 <p className="max-w-2xl text-base leading-7 text-zinc-600 md:text-lg">
-                  Katalog ini mengikuti kontrak backend `articles` dan `quizzes`: pilih satu bacaan, buka kuis
-                  terkait, lalu submit sekali sebagai hasil akhir. Admin juga bisa menambah bacaan langsung dari sini.
+                  Pilih satu bacaan, pahami isinya, lalu kerjakan kuis terkait sebagai penutup sesi. Admin juga bisa menambah bacaan langsung dari sini.
                 </p>
               </div>
 
@@ -199,7 +198,7 @@ export function ReadingCatalog({
               <CardContent className="p-10 text-center">
                 <p className="text-lg font-medium text-zinc-900">Belum ada bacaan pada filter ini.</p>
                 <p className="mt-2 text-sm leading-6 text-zinc-500">
-                  Coba ganti kategori atau periksa apakah backend Java sudah memiliki data artikel.
+                  Coba ganti kategori atau kembali lagi setelah konten baru ditambahkan.
                 </p>
               </CardContent>
             </Card>
@@ -217,7 +216,7 @@ export function ReadingCatalog({
                       <p className="w-fit rounded-full bg-white/55 px-3 py-1 text-xs text-zinc-700">
                         {estimateReadTime(article.content)} - Artikel publik
                       </p>
-                      <h2 className="max-w-full text-xl leading-tight font-semibold text-zinc-900 sm:text-2xl">
+                      <h2 className="max-w-xs text-2xl leading-tight font-semibold text-zinc-900">
                         {article.title}
                       </h2>
                     </div>
@@ -235,7 +234,7 @@ export function ReadingCatalog({
                   </div>
 
                   <div className="flex items-center justify-between text-sm text-zinc-500">
-                    <span>ID: {article.id}</span>
+                    <span>Kode: {article.id}</span>
                     <span>{estimateReadTime(article.content)}</span>
                   </div>
 
