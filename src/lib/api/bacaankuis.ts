@@ -2,6 +2,10 @@ import { apiFetch, apiFetchWithStatus } from "./fetcher";
 import type {
   Article,
   ArticleCreateRequest,
+<<<<<<< HEAD
+=======
+  ArticleUpdateRequest,
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   QuizQuestion,
   QuizCreateRequest,
   QuizUpdateRequest,
@@ -56,6 +60,16 @@ export async function adminDeleteArticle(articleId: string) {
   });
 }
 
+<<<<<<< HEAD
+=======
+export async function adminUpdateArticle(articleId: string, payload: ArticleUpdateRequest) {
+  return apiFetch<Article>(`/api/v1/admin/articles/${articleId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 export async function adminCreateQuiz(articleId: string, payload: QuizCreateRequest) {
   return apiFetch<QuizQuestion>(`/api/v1/admin/articles/${articleId}/quizzes`, {
     method: "POST",

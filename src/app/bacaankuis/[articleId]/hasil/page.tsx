@@ -5,6 +5,10 @@ import { ArrowLeft, BookOpenText, ChartNoAxesColumn, CircleCheckBig } from "luci
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
+<<<<<<< HEAD
+=======
+import { YomuShell } from "@/src/components/yomu/YomuShell";
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 import { categoryAccent } from "@/src/lib/bacaankuis";
 import { getArticleById } from "@/src/lib/server/bacaankuis";
 import { getCurrentUser } from "@/src/lib/server/session";
@@ -62,9 +66,17 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
   const total = parseMetric(query.total);
   const isRepeatResult = query.repeat === "1";
   const hasResultMetrics = score !== null && accuracy !== null && correct !== null && total !== null;
+<<<<<<< HEAD
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,_#f3efe4_0%,_#f7f8f4_32%,_#edf4ef_100%)] text-zinc-900">
+=======
+  const isAdmin = userResponse.data.role === "ADMIN";
+
+  return (
+    <YomuShell mode={isAdmin ? "admin" : "learner"}>
+    <div className="min-h-screen bg-[linear-gradient(180deg,_#f3efe4_0%,_#f7f8f4_32%,_#edf4ef_100%)] text-zinc-900">
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
       <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center gap-6 px-5 py-10 md:px-8">
         <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/85 shadow-[0_28px_70px_-40px_rgba(58,94,71,0.42)]">
           <div className={`bg-gradient-to-r ${categoryAccent(article.category)} px-6 py-8 md:px-8`}>
@@ -191,6 +203,11 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
           </div>
         </div>
       </section>
+<<<<<<< HEAD
     </main>
+=======
+    </div>
+    </YomuShell>
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   );
 }

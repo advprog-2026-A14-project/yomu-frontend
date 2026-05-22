@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -16,6 +17,18 @@ export async function PATCH(request: Request) {
       },
       { status: 401 },
     );
+=======
+import { NextResponse } from "next/server";
+
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
+import { coreFetch } from "@/src/lib/server/coreProxy";
+
+export async function PATCH(request: Request) {
+  const token = await getAuthToken(request);
+
+  if (!token) {
+    return unauthorizedResponse();
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   }
 
   const body = await request.text();

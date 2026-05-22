@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -17,6 +18,22 @@ export async function GET(
       { success: false, message: "Unauthorized" },
       { status: 401 },
     );
+=======
+import { NextResponse } from "next/server";
+
+import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
+import { coreFetch } from "@/src/lib/server/coreProxy";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ articleId: string }> },
+) {
+  const { articleId } = await params;
+  const token = await getAuthToken(request);
+
+  if (!token) {
+    return unauthorizedResponse();
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   }
 
   const result = await coreFetch(`/api/v1/quizzes/${encodeURIComponent(articleId)}`, {

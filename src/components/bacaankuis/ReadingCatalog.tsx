@@ -48,7 +48,11 @@ export function ReadingCatalog({
   const stats = buildStats(articles, categories);
 
   return (
+<<<<<<< HEAD
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.95),_rgba(244,240,227,0.85)_28%,_rgba(216,232,224,0.8)_62%,_rgba(255,255,255,1)_100%)] text-zinc-900">
+=======
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.95),_rgba(244,240,227,0.85)_28%,_rgba(216,232,224,0.8)_62%,_rgba(255,255,255,1)_100%)] text-zinc-900">
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-5 py-8 md:px-8 lg:px-10">
         <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-white/75 shadow-[0_30px_80px_-45px_rgba(58,94,71,0.45)] backdrop-blur">
           <div className="grid gap-8 px-6 py-8 md:px-10 lg:grid-cols-[1.35fr_0.9fr] lg:px-12 lg:py-12">
@@ -248,6 +252,10 @@ export function ReadingCatalog({
           ))}
         </section>
       </section>
+<<<<<<< HEAD
     </main>
+=======
+    </div>
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   );
 }
