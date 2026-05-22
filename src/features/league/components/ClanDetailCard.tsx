@@ -29,7 +29,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
       setUsers(map);
       setLoading(false);
     });
-  }, [clan.members]);
+  }, [clan.members, clan.leader_id]);
 
   const members = clan.members ?? [];
   const buffs = clan.active_buffs ?? [];

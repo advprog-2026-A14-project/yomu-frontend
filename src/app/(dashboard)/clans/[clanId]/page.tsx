@@ -24,10 +24,10 @@ import { YomuShell } from "@/src/components/yomu/YomuShell";
 import { getCurrentUserId, getStoredAuthToken } from "@/src/lib/api/auth";
 import {
   approveJoinRequest,
+  createJoinRequest,
   deleteClan,
   getClanDetail,
   getPendingRequests,
-  joinClan,
   rejectJoinRequest,
 } from "@/src/lib/api/clan";
 import type { ClanDetail, JoinRequest } from "@/src/types/clan";
@@ -92,18 +92,15 @@ export default function ClanDetailPage() {
     }
 
     setJoining(true);
-    const response = await joinClan({
-      clan_id: clan.id,
-      user_id: userId,
-    });
+    const response = await createJoinRequest(clan.id, userId);
     setJoining(false);
 
     if (!response.success) {
-      toast.error(response.message || "Gagal bergabung dengan clan");
+      toast.error(response.message || "Gagal mengirim permintaan bergabung");
       return;
     }
 
-    toast.success("Berhasil bergabung dengan clan");
+    toast.success("Permintaan bergabung telah dikirim. Menunggu persetujuan leader.");
     await load();
   };
 

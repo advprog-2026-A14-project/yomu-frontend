@@ -70,6 +70,7 @@ export interface ClanMembership {
 export interface LeaderboardEntry {
   clan_id: string;
   clan_name: string;
+  leader_id: string;
   tier: string;
   total_score: number;
   rank: number;
