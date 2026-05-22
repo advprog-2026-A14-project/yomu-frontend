@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Medal, RefreshCw, Trophy } from "lucide-react";
 
 import { getLeaderboard, type Leaderboard } from "@/src/lib/api/league";
+import { getBatchUsers, type PublicUser } from "@/src/lib/api/auth";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -17,6 +18,7 @@ export default function LeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null);
   const [message, setMessage] = useState("Memuat papan peringkat clan...");
   const [loading, setLoading] = useState(true);
+  const [leaderNames, setLeaderNames] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     let active = true;
@@ -35,6 +37,11 @@ export default function LeaderboardPage() {
       if (response.success && "data" in response && response.data) {
         setLeaderboard(response.data);
         setMessage("Papan peringkat siap ditampilkan.");
+        const leaderIds = response.data.entries.map((e) => e.leader_id).filter(Boolean);
+        const batch = await getBatchUsers(leaderIds);
+        const nameMap = new Map<string, string>();
+        batch.forEach((u) => nameMap.set(u.user_id, u.display_name));
+        setLeaderNames(nameMap);
         return;
       }
 
@@ -126,7 +133,9 @@ export default function LeaderboardPage() {
                   </div>
                   <div className="min-w-0">
                     <h2 className="font-semibold leading-tight">{entry.clan_name}</h2>
-                    <p className="mt-1 text-sm text-zinc-500">ID: {entry.clan_id}</p>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      Leader: {leaderNames.get(entry.leader_id) ?? entry.leader_id}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 px-4 py-3">
                     <Medal className="size-4 text-amber-700" />

@@ -4,6 +4,7 @@ import { apiFetch, RUST_API_BASE_URL } from "./fetcher";
 export type LeaderboardEntry = {
   clan_id: string;
   clan_name: string;
+  leader_id: string;
   total_score: number;
   tier: string;
   rank: number;
