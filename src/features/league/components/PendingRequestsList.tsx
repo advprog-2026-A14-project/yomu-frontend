@@ -1,7 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -14,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/src/components/ui/table";
-import { ShieldAlert, CheckCircle, XCircle } from "lucide-react";
 import type { JoinRequest } from "@/src/types/clan";
 
 interface PendingRequestsListProps {

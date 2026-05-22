@@ -40,7 +40,6 @@ export default function ClanDetailPage() {
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<JoinRequest[]>([]);
-  const [loadingRequests, setLoadingRequests] = useState(false);
   const [processingRequest, setProcessingRequest] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -74,29 +73,18 @@ export default function ClanDetailPage() {
     }
 
     setClan(clanRes.data);
+    if (clanRes.data.leader_id === uid) {
+      const reqRes = await getPendingRequests(clanId, uid);
+      if (reqRes.success && reqRes.data) {
+        setPendingRequests(reqRes.data as unknown as JoinRequest[]);
+      }
+    }
   }, [clanId, router]);
 
-  const loadPendingRequests = useCallback(async () => {
-    if (!userId || !clan || clan.leader_id !== userId) return;
-
-    setLoadingRequests(true);
-    const res = await getPendingRequests(clanId, userId);
-    setLoadingRequests(false);
-
-    if (res.success && res.data) {
-      setPendingRequests(res.data as unknown as JoinRequest[]);
-    }
-  }, [clanId, userId, clan]);
-
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
-
-  useEffect(() => {
-    if (clan && userId && clan.leader_id === userId) {
-      void loadPendingRequests();
-    }
-  }, [clan, userId, loadPendingRequests]);
 
   const handleJoin = async () => {
     if (!userId || !clan) {
@@ -132,7 +120,6 @@ export default function ClanDetailPage() {
     }
 
     toast.success("Permintaan disetujui");
-    await loadPendingRequests();
     await load();
   };
 
@@ -149,7 +136,7 @@ export default function ClanDetailPage() {
     }
 
     toast.success("Permintaan ditolak");
-    await loadPendingRequests();
+    await load();
   };
 
   const handleDeleteClan = async () => {
