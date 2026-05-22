@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, RefreshCw } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 
 import { AdminGuard } from "@/src/components/yomu/AdminGuard";
 import { YomuShell } from "@/src/components/yomu/YomuShell";

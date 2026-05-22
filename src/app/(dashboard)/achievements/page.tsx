@@ -64,7 +64,11 @@ function AchievementsContent({ user }: { user: User }) {
   }, [user.user_id]);
 
   useEffect(() => {
-    void loadData();
+    const timeout = window.setTimeout(() => {
+      void loadData();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [loadData]);
 
   const handleClaim = async (mission: DailyMissionItem) => {

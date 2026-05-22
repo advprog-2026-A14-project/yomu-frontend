@@ -28,11 +28,7 @@ export default function PendingRequestsList({
   onReject,
   isLoading = false,
 }: PendingRequestsListProps) {
-<<<<<<< HEAD
-  const pendingRequests = requests.filter((req) => req.status === "pending");
-=======
   const pendingRequests = requests.filter((req) => req.status === "Pending");
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
   if (pendingRequests.length === 0) {
     return (

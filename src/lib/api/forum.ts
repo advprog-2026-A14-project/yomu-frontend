@@ -10,8 +10,6 @@ export type Comment = {
   parent_comment_id: string | null;
   content: string;
   created_at: string;
-<<<<<<< HEAD
-=======
   updated_at?: string | null;
   author?: {
     user_id: string;
@@ -19,7 +17,6 @@ export type Comment = {
     display_name: string;
     role: string;
   } | null;
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   reaction_count: number;
   upvote_count?: number;
   downvote_count?: number;
@@ -97,8 +94,6 @@ export async function toggleReaction(commentId: string, reactionType: ReactionTy
     body: JSON.stringify({ reaction_type: reactionType }),
   });
 }
-<<<<<<< HEAD
-=======
 
 export async function getReactionSummary(commentId: string) {
   return apiFetch<{
@@ -110,4 +105,3 @@ export async function getReactionSummary(commentId: string) {
     method: "GET",
   });
 }
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9

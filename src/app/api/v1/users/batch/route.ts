@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-<<<<<<< HEAD
-=======
 import { getAuthToken, unauthorizedResponse } from "@/src/lib/server/auth";
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 import { coreFetch } from "@/src/lib/server/coreProxy";
 
 export async function GET(request: NextRequest) {
@@ -33,11 +30,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-<<<<<<< HEAD
-  const result = await coreFetch<Array<{ user_id: string; display_name: string; username: string }>>(
-    `/api/v1/users/batch?ids=${ids.join(",")}`,
-    { cache: "no-store" }
-=======
   const token = await getAuthToken(request);
 
   if (!token) {
@@ -50,7 +42,6 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
       headers: { Authorization: `Bearer ${token}` },
     }
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   );
 
   if (!result.ok) {
@@ -58,8 +49,4 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json(result.body);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9

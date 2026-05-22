@@ -44,7 +44,11 @@ function MissionsContent() {
   }, []);
 
   useEffect(() => {
-    void loadMissions();
+    const timeout = window.setTimeout(() => {
+      void loadMissions();
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, [loadMissions]);
 
   const handleClaim = async (mission: DailyMissionItem) => {

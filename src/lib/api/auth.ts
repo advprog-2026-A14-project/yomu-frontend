@@ -38,10 +38,7 @@ export type MeResult = {
 
 const ACCESS_TOKEN_KEY = "yomu_access_token";
 const USER_KEY = "yomu_user";
-<<<<<<< HEAD
-=======
 const CLIENT_COOKIE_NAME = "yomu_client_access_token";
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
 function canUseStorage() {
   return typeof window !== "undefined" && Boolean(window.localStorage);
@@ -54,10 +51,7 @@ function storeAuthSession(data: AuthData | GoogleAuthData) {
 
   window.localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token);
   window.localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-<<<<<<< HEAD
-=======
   document.cookie = `${CLIENT_COOKIE_NAME}=${encodeURIComponent(data.access_token)}; path=/; SameSite=Lax`;
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   // also store in sessionStorage for Rust API access
   try { window.sessionStorage.setItem("yomu_access_token", data.access_token); } catch { /* noop */ }
 }
@@ -69,10 +63,7 @@ export function clearAuthSession() {
 
   window.localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.localStorage.removeItem(USER_KEY);
-<<<<<<< HEAD
-=======
   document.cookie = `${CLIENT_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 }
 
 export function getAccessToken() {
@@ -80,9 +71,6 @@ export function getAccessToken() {
     return null;
   }
 
-<<<<<<< HEAD
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
-=======
   const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
 
   if (token) {
@@ -90,7 +78,6 @@ export function getAccessToken() {
   }
 
   return token;
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 }
 
 export function getStoredUser(): User | null {
@@ -183,8 +170,6 @@ export async function me(): Promise<MeResult> {
 }
 
 export async function logout() {
-<<<<<<< HEAD
-=======
   try {
     await apiFetch<never>("/api/v1/auth/logout", {
       method: "POST",
@@ -192,7 +177,6 @@ export async function logout() {
   } catch {
     // Local cleanup is the source of truth for the browser session.
   }
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   clearAuthSession();
   try { window.sessionStorage.removeItem("yomu_access_token"); } catch { /* noop */ }
   return { success: true, message: "Logout berhasil" } satisfies ApiResponse<never>;

@@ -29,11 +29,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
       setUsers(map);
       setLoading(false);
     });
-<<<<<<< HEAD
-  }, [clan.members]);
-=======
   }, [clan.members, clan.leader_id]);
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
   const members = clan.members ?? [];
   const buffs = clan.active_buffs ?? [];
@@ -66,10 +62,7 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
       <Card className="border-black/5 bg-white/88">
         <CardHeader>
           <CardTitle className="text-lg">Anggota ({members.length})</CardTitle>
-<<<<<<< HEAD
-=======
           {loading ? <p className="text-sm text-muted-foreground">Memuat nama anggota...</p> : null}
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
         </CardHeader>
         <CardContent>
           <Table>
@@ -157,8 +150,4 @@ export default function ClanDetailCard({ clan }: ClanDetailCardProps) {
       )}
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
