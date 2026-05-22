@@ -1,30 +1,44 @@
-/* 📝 TYPESCRIPT - Gamification type definitions */
+export type MissionType = "ReadArticle" | "Quiz" | "DailyLogin";
 
-export type MissionStatus = "active" | "completed" | "expired";
+export type AchievementType = "Common" | "Rare" | "Epic" | "Legendary";
 
-export interface Mission {
-  id: string;
-  name: string;
+export type TriggerType = "QuizComplete" | "ReadArticle" | "DailyLogin";
+
+export interface DailyMissionItem {
+  mission_id: string;
   description: string;
-  xp_reward: number;
-  status: MissionStatus;
-  deadline: string | null;
-  progress: number;
-  target: number;
+  target_count: number;
+  current_progress: number;
+  is_claimed: boolean;
+  reward_points: number;
+  mission_type: MissionType;
 }
 
-export interface Achievement {
-  id: string;
+export interface UserAchievementItem {
+  achievement_id: string;
   name: string;
-  description: string;
-  icon: string;
-  unlocked_at: string | null;
-  xp_reward: number;
+  milestone_target: number;
+  current_progress: number;
+  is_completed: boolean;
+  is_shown_on_profile: boolean;
+  completed_at: string | null;
+  achievement_type: AchievementType;
+  trigger_type: TriggerType;
+  reward_points: number;
 }
 
-export interface DailyReward {
-  day: number;
-  claimed: boolean;
-  xp_reward: number;
-  item_name: string | null;
+export interface CreateAchievementPayload {
+  name: string;
+  milestone_target: number;
+  achievement_type: AchievementType;
+  trigger_type: TriggerType;
+  reward_points: number;
+}
+
+export interface CreateMissionPayload {
+  description: string;
+  target_count: number;
+  date: string;
+  reward_points: number;
+  mission_type: MissionType;
 }
