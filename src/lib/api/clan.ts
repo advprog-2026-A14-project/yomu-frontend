@@ -6,7 +6,7 @@ import type {
   CreateClanPayload,
   CreateJoinRequestPayload,
   ApproveRejectPayload,
-  LeaderboardEntry,
+  LeaderboardDto,
 } from "@/src/types/clan";
 
 const RUST_API = process.env.NEXT_PUBLIC_RUST_ENGINE_URL ?? "http://localhost:8080";
@@ -100,8 +100,30 @@ export async function deleteClan(clanId: string, callerId: string) {
   });
 }
 
-export async function getLeaderboard() {
-  return apiFetch<LeaderboardEntry[]>(`${RUST_API}/api/v1/leaderboards`, {
+export async function getLeaderboard(tier?: string) {
+  const url = tier ? `${RUST_API}/api/v1/leaderboards?tier=${encodeURIComponent(tier)}` : `${RUST_API}/api/v1/leaderboards`;
+  return apiFetch<LeaderboardDto>(url, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+}
+
+export async function triggerSeasonEnd(seasonId: string) {
+  return apiFetch<unknown>(`${RUST_API}/api/v1/seasons/${seasonId}/end`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+}
+
+export async function processBuffs(clanId: string) {
+  return apiFetch<unknown>(`${RUST_API}/api/v1/clans/${clanId}/process-buffs`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+}
+
+export async function getAllClans() {
+  return apiFetch<ClanDetail[]>(`${RUST_API}/api/v1/clans`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
