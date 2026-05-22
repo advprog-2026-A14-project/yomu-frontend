@@ -16,6 +16,7 @@ import {
 
 import { DashboardReadingPreview } from "@/src/components/bacaankuis/DashboardReadingPreview";
 import { DashboardForumPreview } from "@/src/components/forum/DashboardForumPreview";
+import { DashboardClanPreview } from "@/src/components/clan/DashboardClanPreview";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
@@ -205,6 +206,7 @@ export default function AppPage() {
         </section>
 
         <DashboardReadingPreview />
+        <DashboardClanPreview />
         <DashboardForumPreview />
       </div>
     </YomuShell>
