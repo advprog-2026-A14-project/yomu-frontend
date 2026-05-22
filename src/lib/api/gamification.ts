@@ -1,5 +1,9 @@
 import { getAccessToken } from "./auth";
 import { apiFetch, RUST_API_BASE_URL } from "./fetcher";
+import type {
+  CreateAchievementPayload,
+  CreateMissionPayload,
+} from "@/src/types/gamification";
 
 export type DailyMissionItem = {
   mission_id: string;
@@ -24,6 +28,7 @@ export type UserAchievementItem = {
   is_shown_on_profile: boolean;
   completed_at: string | null;
   achievement_type: string;
+  trigger_type: string;
   reward_points: number;
 };
 
@@ -109,4 +114,84 @@ export async function toggleAchievementVisibility(
       body: JSON.stringify({ is_shown_on_profile: isShown }),
     },
   );
+}
+
+// ─── Admin functions ──────────────────────────────────────────────────────────
+
+export type CreateAchievementData = {
+  achievement_id: string;
+  name: string;
+  milestone_target: number;
+  achievement_type: string;
+  trigger_type: string;
+  reward_points: number;
+};
+
+export type CreateMissionData = {
+  mission_id: string;
+  description: string;
+  target_count: number;
+  current_progress: number;
+  is_claimed: boolean;
+  reward_points: number;
+  mission_type: string;
+};
+
+export async function adminCreateAchievement(payload: CreateAchievementPayload) {
+  const auth = requireToken();
+
+  if (!auth.ok) {
+    return { success: false as const, message: auth.message };
+  }
+
+  return apiFetch<CreateAchievementData>("/api/v1/admin/achievements", {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminCreateDailyMission(payload: CreateMissionPayload) {
+  const auth = requireToken();
+
+  if (!auth.ok) {
+    return { success: false as const, message: auth.message };
+  }
+
+  return apiFetch<CreateMissionData>("/api/v1/admin/missions/daily", {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminUpdateDailyMission(missionId: string, payload: CreateMissionPayload) {
+  const auth = requireToken();
+
+  if (!auth.ok) {
+    return { success: false as const, message: auth.message };
+  }
+
+  return apiFetch<CreateMissionData>(`/api/v1/admin/missions/${missionId}`, {
+    method: "PATCH",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function adminDeleteDailyMission(missionId: string) {
+  const auth = requireToken();
+
+  if (!auth.ok) {
+    return { success: false as const, message: auth.message };
+  }
+
+  return apiFetch<null>(`/api/v1/admin/missions/${missionId}`, {
+    method: "DELETE",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+  });
 }
