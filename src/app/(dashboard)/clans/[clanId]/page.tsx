@@ -43,7 +43,6 @@ export default function ClanDetailPage() {
   const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
-    setLoading(true);
     setError(null);
 
     const token = getStoredAuthToken();
@@ -81,6 +80,7 @@ export default function ClanDetailPage() {
   }, [clanId, router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, [load]);
 

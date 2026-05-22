@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUserId, getStoredAuthToken } from "@/src/lib/api/auth";
 import { getUserTier } from "@/src/lib/api/clan";
@@ -16,7 +16,7 @@ export default function ClansPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [clanInfo, setClanInfo] = useState<UserTierInfo | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -50,11 +50,12 @@ export default function ClansPage() {
       }
     }
     setLoading(false);
-  }
+  }, [router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
-  }, []);
+  }, [load]);
 
   if (loading) {
     return <ClansPageSkeleton />;

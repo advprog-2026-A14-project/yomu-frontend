@@ -1,4 +1,4 @@
-import { apiFetch, isApiResponse } from "./fetcher";
+import { apiFetch, apiFetchWithStatus } from "./fetcher";
 import type { ApiResponse } from "./types";
 
 export type Role = "PELAJAR" | "ADMIN" | string;
@@ -36,6 +36,60 @@ export type MeResult = {
   response: ApiResponse<User>;
 };
 
+const ACCESS_TOKEN_KEY = "yomu_access_token";
+const USER_KEY = "yomu_user";
+
+function canUseStorage() {
+  return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function storeAuthSession(data: AuthData | GoogleAuthData) {
+  if (!canUseStorage()) {
+    return;
+  }
+
+  window.localStorage.setItem(ACCESS_TOKEN_KEY, data.access_token);
+  window.localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  // also store in sessionStorage for Rust API access
+  try { window.sessionStorage.setItem("yomu_access_token", data.access_token); } catch { /* noop */ }
+}
+
+export function clearAuthSession() {
+  if (!canUseStorage()) {
+    return;
+  }
+
+  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+  window.localStorage.removeItem(USER_KEY);
+}
+
+export function getAccessToken() {
+  if (!canUseStorage()) {
+    return null;
+  }
+
+  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function getStoredUser(): User | null {
+  if (!canUseStorage()) {
+    return null;
+  }
+
+  const rawUser = window.localStorage.getItem(USER_KEY);
+
+  if (!rawUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawUser) as User;
+  } catch {
+    window.localStorage.removeItem(USER_KEY);
+    return null;
+  }
+}
+
 export async function login(identifier: string, password: string) {
   const res = await apiFetch<AuthData>("/api/v1/auth/login", {
     method: "POST",
@@ -44,9 +98,11 @@ export async function login(identifier: string, password: string) {
       password,
     }),
   });
-  if (res.success && "data" in res && res.data?.access_token) {
-    storeAuthToken(res.data.access_token);
+
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
+
   return res;
 }
 
@@ -55,9 +111,11 @@ export async function register(payload: RegisterPayload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
-  if (res.success && "data" in res && res.data?.access_token) {
-    storeAuthToken(res.data.access_token);
+
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
+
   return res;
 }
 
@@ -68,68 +126,56 @@ export async function googleLogin(idToken: string) {
       id_token: idToken,
     }),
   });
-  if (res.success && "data" in res && res.data?.access_token) {
-    storeAuthToken(res.data.access_token);
+
+  if (res.success && "data" in res && res.data) {
+    storeAuthSession(res.data);
   }
+
   return res;
 }
 
 export async function me(): Promise<MeResult> {
-  try {
-    const response = await fetch("/api/v1/users/me", {
-      method: "GET",
-      credentials: "same-origin",
-      cache: "no-store",
-    });
+  const token = getAccessToken();
 
-    let payload: unknown;
-
-    try {
-      payload = await response.json();
-    } catch {
-      return {
-        status: response.status,
-        response: { success: false, message: "Terjadi kesalahan jaringan" },
-      };
-    }
-
-    if (!isApiResponse<User>(payload)) {
-      return {
-        status: 502,
-        response: { success: false, message: "Upstream response invalid" },
-      };
-    }
-
+  if (!token) {
     return {
-      status: response.status,
-      response: payload,
-    };
-  } catch {
-    return {
-      status: 0,
-      response: { success: false, message: "Terjadi kesalahan jaringan" },
+      status: 401,
+      response: { success: false, message: "Session tidak ditemukan" },
     };
   }
+
+  const result = await apiFetchWithStatus<User>("/api/v1/users/me", {
+    method: "GET",
+    token,
+  });
+
+  if (result.status === 401 || result.status === 403) {
+    clearAuthSession();
+  }
+
+  if (result.response.success && "data" in result.response && result.response.data && canUseStorage()) {
+    window.localStorage.setItem(USER_KEY, JSON.stringify(result.response.data));
+  }
+
+  return result;
 }
 
 export async function logout() {
-  if (typeof window !== "undefined") {
-    sessionStorage.removeItem("yomu_access_token");
-  }
-  return apiFetch<never>("/api/v1/auth/logout", {
-    method: "POST",
-  });
+  clearAuthSession();
+  try { window.sessionStorage.removeItem("yomu_access_token"); } catch { /* noop */ }
+  return { success: true, message: "Logout berhasil" } satisfies ApiResponse<never>;
 }
 
+// sessionStorage helpers for Rust API (CSR direct calls)
 export function storeAuthToken(token: string) {
   if (typeof window !== "undefined") {
-    sessionStorage.setItem("yomu_access_token", token);
+    window.sessionStorage.setItem("yomu_access_token", token);
   }
 }
 
 export function getStoredAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return sessionStorage.getItem("yomu_access_token");
+  return window.sessionStorage.getItem("yomu_access_token");
 }
 
 export async function getCurrentUserId(): Promise<string | null> {

@@ -71,15 +71,14 @@ npx shadcn@latest add [component-name]
 
 # FE Auth Simple
 ## Flow
-- Login local: browser memanggil `POST /api/v1/auth/login` (BFF Next), BFF proxy ke Core, lalu set cookie httpOnly jika sukses.
-- Register local: browser memanggil `POST /api/v1/auth/register`, BFF proxy ke Core, lalu set cookie httpOnly jika sukses.
-- Login Google SSO: browser memakai `@react-oauth/google`, kirim `id_token` ke `POST /api/v1/auth/google`, BFF set cookie httpOnly jika sukses.
+- Login local: browser memanggil `POST {NEXT_PUBLIC_YOMU_API_BASE_URL}/api/v1/auth/login` langsung ke Java backend.
+- Register local: browser memanggil `POST {NEXT_PUBLIC_YOMU_API_BASE_URL}/api/v1/auth/register` langsung ke Java backend.
+- Login Google SSO: browser memakai `@react-oauth/google`, lalu kirim `id_token` langsung ke endpoint Google auth Java backend.
 
-## Session dan Cookie
-- Token access tidak disimpan di `localStorage` atau `sessionStorage`.
-- Token disimpan di cookie httpOnly oleh route handler Next:
-  - nama cookie: `AUTH_COOKIE_NAME` (default `yomu_access_token`)
-  - option: `httpOnly`, `sameSite=lax`, `path=/`, `secure` dari `AUTH_COOKIE_SECURE`
+## Session
+- Token access disimpan di `localStorage` dengan key `yomu_access_token`.
+- Data user terakhir disimpan di `localStorage` dengan key `yomu_user`.
+- Request private mengirim `Authorization: Bearer <token>` langsung dari browser.
 
 ## Proteksi Halaman Sederhana
 - Halaman `/app` dan `/admin` memanggil `GET /api/v1/users/me` saat mount.
@@ -91,18 +90,14 @@ npx shadcn@latest add [component-name]
   - `PELAJAR` => `/app`
 
 ## Catatan Penting Saat Pull `main` (Untuk Tambah Modul/Fitur Baru)
-- Jangan fetch ke Core langsung dari browser. Selalu lewat endpoint Next BFF: `/api/v1/...`.
-- Jangan simpan token di `localStorage`/`sessionStorage`. Token hanya di cookie httpOnly yang di-set Route Handler.
+- Gunakan helper `src/lib/api/fetcher.ts`; jangan membuat proxy Next route handler baru untuk API backend.
+- Pastikan backend mengaktifkan CORS untuk origin frontend saat development beda port/origin.
 - Jangan decode/verify JWT di frontend. Status login dan role selalu sumbernya dari `GET /api/v1/users/me`.
 - Semua endpoint baru wajib pakai wrapper JSON:
   - sukses + data: `{"success": true, "message": "...", "data": ...}`
   - sukses tanpa data: `{"success": true, "message": "..."}`
   - error: `{"success": false, "message": "..."}`
 - Semua key JSON wajib `snake_case`.
-- Saat bikin Route Handler BFF baru:
-  - gunakan `coreFetch(...)` dari `src/lib/server/coreProxy.ts`
-  - teruskan status code upstream (contoh `200/400/401/403/409`)
-  - jika response upstream tidak valid wrapper, return `502` dengan message `Upstream response invalid`
 - Saat bikin halaman protected baru:
   - panggil `me()` di client saat mount
   - jika `401/403` redirect ke `/auth/login`
@@ -111,8 +106,12 @@ npx shadcn@latest add [component-name]
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` di frontend harus sama dengan client id verifier di backend
   - pastikan OAuth origin `http://localhost:3000` terdaftar di Google Cloud
 - Format `.env.local` wajib bersih tanpa spasi di nilai dan tanpa komentar inline, contoh:
-  - `AUTH_COOKIE_SECURE=false`
+  - `NEXT_PUBLIC_YOMU_API_BASE_URL=http://localhost:8081`
+  - `NEXT_PUBLIC_RUST_ENGINE_BASE_URL=http://localhost:8080`
   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com`
 - Minimal verifikasi sebelum push:
   - `npm run lint`
   - `npm run build`
+
+<!-- Auto-deploy test: 2026-05-21T19:26:08+07:00 -->
+# Test deploy trigger Thu May 21 19:26:46 WIB 2026

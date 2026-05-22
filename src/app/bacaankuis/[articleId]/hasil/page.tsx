@@ -177,13 +177,13 @@ export default async function ArticleQuizResultPage({ params, searchParams }: Pr
 
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                   <Button asChild variant="outline" className="rounded-full">
-                    <Link href={`/bacaankuis/${article.id}`}>
+                    <Link href={`/bacaankuis/${articleId}`} className="whitespace-normal text-center">
                       <ArrowLeft className="size-4" />
                       Kembali ke artikel
                     </Link>
                   </Button>
                   <Button asChild className="rounded-full bg-zinc-950 text-white hover:bg-zinc-800">
-                    <Link href="/bacaankuis">Lihat bacaan lain</Link>
+                    <Link href="/bacaankuis" className="whitespace-normal text-center">Lihat bacaan lain</Link>
                   </Button>
                 </div>
               </CardContent>
