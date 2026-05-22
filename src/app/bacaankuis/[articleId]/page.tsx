@@ -1,6 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 
 import { ReadingQuizExperience } from "@/src/components/bacaankuis/ReadingQuizExperience";
+<<<<<<< HEAD
+=======
+import { YomuShell } from "@/src/components/yomu/YomuShell";
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 import { getArticleById, getQuizQuestions } from "@/src/lib/server/bacaankuis";
 import { getCurrentUser } from "@/src/lib/server/session";
 
@@ -36,6 +40,7 @@ export default async function ArticleQuizPage({ params }: Props) {
   const adminName = userResponse.data.display_name;
 
   return (
+<<<<<<< HEAD
     <ReadingQuizExperience
       article={articleResponse.data}
       questions={questions}
@@ -43,5 +48,16 @@ export default async function ArticleQuizPage({ params }: Props) {
       adminName={adminName}
       quizMessage={quizResponse.success ? null : quizResponse.message}
     />
+=======
+    <YomuShell mode={isAdmin ? "admin" : "learner"}>
+      <ReadingQuizExperience
+        article={articleResponse.data}
+        questions={questions}
+        isAdmin={isAdmin}
+        adminName={adminName}
+        quizMessage={quizResponse.success ? null : quizResponse.message}
+      />
+    </YomuShell>
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   );
 }

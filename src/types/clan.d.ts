@@ -2,7 +2,7 @@
 
 export type ClanTier = "Bronze" | "Silver" | "Gold" | "Diamond";
 
-export type JoinRequestStatus = "pending" | "approved" | "rejected";
+export type JoinRequestStatus = "Pending" | "Approved" | "Rejected";
 
 export interface ClanMember {
   user_id: string;
@@ -70,6 +70,7 @@ export interface ClanMembership {
 export interface LeaderboardEntry {
   clan_id: string;
   clan_name: string;
+  leader_id: string;
   tier: string;
   total_score: number;
   rank: number;

@@ -10,7 +10,11 @@ import {
   toggleReaction,
   updateComment,
 } from "@/src/lib/api/forum";
+<<<<<<< HEAD
 import { Check, MessageCircle, Pencil, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+=======
+import { Check, Heart, MessageCircle, Pencil, ThumbsDown, ThumbsUp, Trash2, X } from "lucide-react";
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 import { CommentForm } from "./CommentForm";
 
 type Props = {
@@ -59,6 +63,11 @@ function CommentItem({
   const canDelete = isOwner || isAdmin;
   const upvoteCount = comment.upvote_count ?? comment.reaction_count;
   const downvoteCount = comment.downvote_count ?? 0;
+<<<<<<< HEAD
+=======
+  const emojiCount = comment.emoji_count ?? 0;
+  const authorName = comment.author?.display_name ?? comment.author?.username ?? `${comment.user_id.slice(0, 8)}...`;
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 
   const handleReaction = async (reactionType: ReactionType) => {
     setReactingType(reactionType);
@@ -136,6 +145,7 @@ function CommentItem({
   };
 
   return (
+<<<<<<< HEAD
     <div className={`${depth > 0 ? "ml-6 border-l border-zinc-100 pl-4" : ""}`}>
       <div className="space-y-2 rounded-lg border border-zinc-100 bg-white p-4">
         <div className="flex items-center gap-2 text-xs text-zinc-500">
@@ -143,6 +153,15 @@ function CommentItem({
           {comment.tier && <TierBadge tier={comment.tier} />}
           {comment.clan_name && <span className="text-zinc-400">{comment.clan_name}</span>}
           <span className="ml-auto">{new Date(comment.created_at).toLocaleDateString("id-ID")}</span>
+=======
+    <div className={`${depth > 0 ? "ml-3 border-l border-zinc-100 pl-3 sm:ml-6 sm:pl-4" : ""}`}>
+      <div className="space-y-3 rounded-xl border border-zinc-100 bg-white p-4">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+          <span className="font-medium text-zinc-800">{authorName}</span>
+          {comment.tier && <TierBadge tier={comment.tier} />}
+          {comment.clan_name && <span className="text-zinc-400">{comment.clan_name}</span>}
+          <span className="ml-auto whitespace-nowrap">{new Date(comment.created_at).toLocaleDateString("id-ID")}</span>
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
         </div>
 
         {editing ? (
@@ -183,7 +202,11 @@ function CommentItem({
 
         {actionError && <p className="text-xs text-red-600">{actionError}</p>}
 
+<<<<<<< HEAD
         <div className="flex items-center gap-3 pt-1">
+=======
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
           <button
             type="button"
             onClick={() => handleReaction("UPVOTE")}
@@ -206,6 +229,20 @@ function CommentItem({
             <ThumbsDown className="size-4" />
             <span className="text-zinc-400">{downvoteCount}</span>
           </button>
+<<<<<<< HEAD
+=======
+          <button
+            type="button"
+            onClick={() => handleReaction("EMOJI")}
+            disabled={reactingType !== null}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-200 px-2.5 text-xs font-medium text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 disabled:opacity-50"
+            aria-label="Reaksi emoji komentar"
+            title="Emoji"
+          >
+            <Heart className="size-4" />
+            <span className="text-zinc-400">{emojiCount}</span>
+          </button>
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
           {depth === 0 && !editing && (
             <button
               type="button"

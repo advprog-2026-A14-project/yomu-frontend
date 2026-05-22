@@ -62,6 +62,24 @@ export async function createClan(payload: CreateClanPayload) {
   });
 }
 
+<<<<<<< HEAD
+=======
+export async function createJoinRequest(clanId: string, userId: string) {
+  const auth = getTokenOrError();
+
+  if (!auth.success) {
+    return auth;
+  }
+
+  return apiFetch<unknown>(`/api/v1/clans/${encodeURIComponent(clanId)}/join-request`, {
+    method: "POST",
+    baseUrl: RUST_API_BASE_URL,
+    token: auth.token,
+    body: JSON.stringify({ clan_id: clanId, user_id: userId }),
+  });
+}
+
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 export async function joinClan(payload: JoinClanPayload) {
   const auth = getTokenOrError();
 
@@ -69,6 +87,11 @@ export async function joinClan(payload: JoinClanPayload) {
     return auth;
   }
 
+<<<<<<< HEAD
+=======
+  // DEPRECATED: direct join is disabled. Use createJoinRequest() instead.
+  // Kept for backwards-compatibility in case other callers depend on it.
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
   return apiFetch<ClanMembership>(`/api/v1/clans/${encodeURIComponent(payload.clan_id)}/join`, {
     method: "POST",
     baseUrl: RUST_API_BASE_URL,

@@ -39,6 +39,11 @@ export type ArticleCreateRequest = {
   category: string;
 };
 
+<<<<<<< HEAD
+=======
+export type ArticleUpdateRequest = Partial<Omit<ArticleCreateRequest, "id">>;
+
+>>>>>>> d11acafa915e740b6ba9e6680935a006c06844f9
 export type QuizCreateRequest = {
   id: string;
   question: string;
